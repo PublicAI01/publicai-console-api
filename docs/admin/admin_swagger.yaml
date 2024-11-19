@@ -6,6 +6,13 @@ definitions:
       configValue:
         type: string
     type: object
+  dto.MarketplaceValidationUpdateReq:
+    properties:
+      a_pass:
+        type: boolean
+      id:
+        type: integer
+    type: object
   dto.PassWord:
     properties:
       newPassword:
@@ -1095,6 +1102,81 @@ paths:
       summary: 获取验证码
       tags:
       - 登陆
+  /api/v1/data_hub/marketplace/campaign:
+    get:
+      description: 获取JSON
+      responses:
+        "200":
+          description: '{"code": 200, "data": [...]}'
+          schema:
+            type: string
+      security:
+      - Bearer: []
+      summary: 列表DataHub所有Campaign信息数据
+      tags:
+      - DataHub
+  /api/v1/data_hub/marketplace/campaign/reward:
+    get:
+      description: 获取JSON
+      parameters:
+      - description: task_id
+        in: query
+        name: task_id
+        type: string
+      responses:
+        "200":
+          description: '{"code": 200, "data": [...]}'
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - Bearer: []
+      summary: 获取Campaign reward信息数据
+      tags:
+      - DataHub
+  /api/v1/data_hub/marketplace/campaign/validation:
+    get:
+      description: 获取JSON
+      parameters:
+      - description: task_id
+        in: query
+        name: task_id
+        type: string
+      responses:
+        "200":
+          description: '{"code": 200, "data": [...]}'
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - Bearer: []
+      summary: 获取Campaign信息数据
+      tags:
+      - DataHub
+  /api/v1/data_hub/marketplace/campaign/validation/{id}:
+    put:
+      consumes:
+      - application/json
+      description: 获取JSON
+      parameters:
+      - description: id
+        in: path
+        name: id
+        type: string
+      - description: body
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/dto.MarketplaceValidationUpdateReq'
+      responses:
+        "200":
+          description: '{"code": 200, "message": "修改成功"}'
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - Bearer: []
+      summary: 修改validation
+      tags:
+      - DataHub
   /api/v1/data_hub/user:
     get:
       description: 获取JSON

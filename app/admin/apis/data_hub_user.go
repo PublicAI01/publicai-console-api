@@ -40,7 +40,6 @@ func (e DataHubUser) GetPageUser(c *gin.Context) {
 		e.Error(500, err, err.Error())
 		return
 	}
-
 	//数据权限检查
 	p := actions.GetPermissionFromContext(c)
 
@@ -130,6 +129,7 @@ func (e DataHubUser) GetPageUserPoint(c *gin.Context) {
 
 	list := make([]models.RewardItem, 0)
 	var count int64
+	var total int64
 
 	startTimeStamp, err := strconv.ParseInt(req.StartTime, 10, 64)
 	if err != nil {
@@ -147,10 +147,13 @@ func (e DataHubUser) GetPageUserPoint(c *gin.Context) {
 	endTime := time.Unix(endTimeStamp, 0)
 	req.StartTime = startTime.Format("2006-01-02 15:04:05")
 	req.EndTime = endTime.Format("2006-01-02 15:04:05")
-	err = s.GetPageUserPoint(&req, p, &list, &count)
+	err = s.GetPageUserPoint(&req, p, &list, &count, &total)
 	if err != nil {
 		e.Error(500, err, "查询失败")
 		return
 	}
-	e.PageOK(list, int(count), req.GetPageIndex(), req.GetPageSize(), "查询成功")
+	e.PageOK(map[string]interface{}{
+		"total": total,
+		"data":  list,
+	}, int(count), req.GetPageIndex(), req.GetPageSize(), "查询成功")
 }

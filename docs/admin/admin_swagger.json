@@ -78,6 +78,130 @@
                 }
             }
         },
+        "/api/v1/data_hub/marketplace/campaign": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "获取JSON",
+                "tags": [
+                    "DataHub"
+                ],
+                "summary": "列表DataHub所有Campaign信息数据",
+                "responses": {
+                    "200": {
+                        "description": "{\"code\": 200, \"data\": [...]}",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/data_hub/marketplace/campaign/reward": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "获取JSON",
+                "tags": [
+                    "DataHub"
+                ],
+                "summary": "获取Campaign reward信息数据",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "task_id",
+                        "name": "task_id",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{\"code\": 200, \"data\": [...]}",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/data_hub/marketplace/campaign/validation": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "获取JSON",
+                "tags": [
+                    "DataHub"
+                ],
+                "summary": "获取Campaign信息数据",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "task_id",
+                        "name": "task_id",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{\"code\": 200, \"data\": [...]}",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/data_hub/marketplace/campaign/validation/{id}": {
+            "put": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "获取JSON",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "DataHub"
+                ],
+                "summary": "修改validation",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "id",
+                        "name": "id",
+                        "in": "path"
+                    },
+                    {
+                        "description": "body",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.MarketplaceValidationUpdateReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{\"code\": 200, \"message\": \"修改成功\"}",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/data_hub/user": {
             "get": {
                 "security": [
@@ -2879,6 +3003,17 @@
                 },
                 "configValue": {
                     "type": "string"
+                }
+            }
+        },
+        "dto.MarketplaceValidationUpdateReq": {
+            "type": "object",
+            "properties": {
+                "a_pass": {
+                    "type": "boolean"
+                },
+                "id": {
+                    "type": "integer"
                 }
             }
         },

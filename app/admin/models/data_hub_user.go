@@ -93,46 +93,6 @@ func (*UserEthereumAddress) TableName() string {
 	return "user_ethereum_addresses"
 }
 
-type AITaskUploadRecord struct {
-	ID         uint      `gorm:"primaryKey;type:autoIncrement;autoIncrementIncrement:1" json:"id"`
-	User       uint      `gorm:"index" json:"user"`
-	Task       uint      `json:"task"`
-	TaskRecord uint      `gorm:"index" json:"task_record"`
-	Type       int       `json:"type"` // 0 Image 1 Text 2 Video 3 Audio
-	Total      int       `json:"total"`
-	Success    int       `json:"success"`
-	Files      string    `json:"files"`
-	Issued     int       `gorm:"default:0" json:"issued"`
-	Completed  int       `gorm:"default:0" json:"completed"`
-	CreatedAt  time.Time `gorm:"type:timestamptz;autoCreateTime:milli;default:null" json:"created_at"`
-}
-
-func (*AITaskUploadRecord) TableName() string {
-	return "ai_task_upload_records"
-}
-
-type AITaskUploadedFile struct {
-	ID           uint      `gorm:"primaryKey;type:autoIncrement;autoIncrementIncrement:1" json:"id"`
-	User         uint      `gorm:"index" json:"user"`
-	Task         uint      `gorm:"index:idx_task_hash" json:"task"`
-	TaskRecord   uint      `gorm:"index" json:"task_record"`
-	UploadRecord uint      `gorm:"index" json:"upload_record"`
-	Type         int       `json:"type"` // 0 Image 1 Text 2 Video 3 Audio
-	Link         string    `json:"link"`
-	Hash         string    `gorm:"index:idx_task_hash" json:"hash"`
-	FileName     string    `gorm:"index" json:"file_name"`
-	VPass        bool      `gorm:"default:false" json:"v_pass"` // validator verify passed
-	APass        bool      `gorm:"default:true" json:"a_pass"`  // admin verify passed
-	Status       int       `gorm:"default:0" json:"status"`     //最终状态 -1 Data not qualified for task 0 accepted 1 finished
-	VAye         int       `gorm:"default:0" json:"v_aye"`      //aye of validator
-	VNay         int       `gorm:"default:0" json:"v_nay"`      //nay of validator
-	CreatedAt    time.Time `gorm:"type:timestamptz;autoCreateTime:milli;default:null" json:"created_at"`
-}
-
-func (*AITaskUploadedFile) TableName() string {
-	return "ai_task_uploaded_files"
-}
-
 type TrainReward struct {
 	ID        uint      `gorm:"primaryKey;type:autoIncrement;autoIncrementIncrement:1" json:"id"`
 	User      uint      `gorm:"index" json:"user"`
@@ -148,6 +108,7 @@ func (*TrainReward) TableName() string {
 }
 
 type RewardItem struct {
+	ID        int       `json:"id"`
 	User      uint      `json:"user"`
 	Point     uint      `json:"point"`
 	CreatedAt time.Time `json:"created_at"`

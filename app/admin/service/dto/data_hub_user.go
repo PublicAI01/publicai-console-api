@@ -2,26 +2,6 @@ package dto
 
 import "go-admin/common/dto"
 
-//type DataHubUser struct {
-//	UserID            string `json:"user_id"`
-//	UserName          string `json:"user_name"`
-//	Location          string `json:"location"`
-//	Email             string `json:"email"`
-//	TelegramID        string `json:"telegram_id"`
-//	TelegramName      string `json:"telegram_id"`
-//	TwitterID         string `json:"twitter_id"`
-//	TwitterName       string `json:"twitter_name"`
-//	Level             int    `json:"level"`
-//	Rank              int    `json:"rank"`
-//	SolanaAccount     string `json:"solana_account"`
-//	NearAccount       string `json:"near_account"`
-//	EvmAccount        string `json:"evm_account"`
-//	CompletedItems    int    `json:"completed_items"`
-//	Points            int    `json:"points"`
-//	UploadTimes       int    `json:"upload_times"`
-//	ContributionValue int    `json:"contribution_value"`
-//}
-
 type DataHubUserGetPageReq struct {
 	dto.Pagination `search:"-"`
 	Email          string `form:"email" search:"type:contains;column:email;table:users"`
