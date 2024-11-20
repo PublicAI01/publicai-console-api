@@ -166,9 +166,7 @@ const docTemplateadmin = `{
                         }
                     }
                 }
-            }
-        },
-        "/api/v1/data_hub/marketplace/campaign/validation/{id}": {
+            },
             "put": {
                 "security": [
                     {
@@ -184,12 +182,6 @@ const docTemplateadmin = `{
                 ],
                 "summary": "修改validation",
                 "parameters": [
-                    {
-                        "type": "string",
-                        "description": "id",
-                        "name": "id",
-                        "in": "path"
-                    },
                     {
                         "description": "body",
                         "name": "data",
@@ -3017,11 +3009,19 @@ const docTemplateadmin = `{
         "dto.MarketplaceValidationUpdateReq": {
             "type": "object",
             "properties": {
-                "a_pass": {
-                    "type": "boolean"
-                },
-                "id": {
-                    "type": "integer"
+                "validations": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "a_pass": {
+                                "type": "boolean"
+                            },
+                            "id": {
+                                "type": "integer"
+                            }
+                        }
+                    }
                 }
             }
         },

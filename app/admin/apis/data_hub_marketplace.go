@@ -77,13 +77,18 @@ func (e DataHubMarketplace) GetCampaignValidation(c *gin.Context) {
 	//数据权限检查
 	p := actions.GetPermissionFromContext(c)
 
-	list := make([]models.AITaskUploadedFile, 0)
+	list := make([]models.AITaskUploadRecord, 0)
 	var count int64
 
 	err = s.GetCampaignValidation(&req, p, &list, &count)
 	if err != nil {
 		e.Error(500, err, "查询失败")
 		return
+	}
+	for i, item := range list {
+		var files []models.AITaskUploadedFile
+		e.Orm.Find(&files, "upload_record = ?", item.ID)
+		list[i].Items = files
 	}
 	e.PageOK(list, int(count), req.GetPageIndex(), req.GetPageSize(), "查询成功")
 }
@@ -146,10 +151,9 @@ func (e DataHubMarketplace) GetPageReward(c *gin.Context) {
 // @Tags DataHub
 // @Accept  application/json
 // @Product application/json
-// @Param id path string false "id"
 // @Param data body dto.MarketplaceValidationUpdateReq true "body"
 // @Success 200 {object} response.Response	"{"code": 200, "message": "修改成功"}"
-// @Router /api/v1/data_hub/marketplace/campaign/validation/{id} [put]
+// @Router /api/v1/data_hub/marketplace/campaign/validation [put]
 // @Security Bearer
 func (e DataHubMarketplace) UpdateCampaignValidation(c *gin.Context) {
 	s := service.DataHubMarketplace{}

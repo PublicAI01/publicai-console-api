@@ -1,7 +1,6 @@
 package apis
 
 import (
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/go-admin-team/go-admin-core/sdk/api"
 	"go-admin/app/admin/models"
@@ -52,50 +51,50 @@ func (e DataHubUser) GetPageUser(c *gin.Context) {
 		return
 	}
 	for i, user := range list {
-		list[i].SolanaAccount = user.Wallet
-		var trainCount int64
-		e.Orm.Model(&models.Train{}).Where("\"user\" = ?", user.ID).Count(&trainCount)
-		list[i].CompletedItems = int(trainCount)
-
-		var userCount int64
-		var userPoint uint
-		if user.Level == uint(Beginner) {
-			userPoint = user.Point
-		} else if user.Level == uint(Senior) {
-			userPoint = user.Point + SENIOR_POINT
-		} else if user.Level == uint(Master) {
-			userPoint = user.Point + SENIOR_POINT + MASTER_POINT
-		}
-		var tmaUser models.TMAUser
-		tmaUserResult := e.Orm.First(&tmaUser, "telegram_id = ?", user.TelegramID)
-		if tmaUserResult.Error == nil {
-			userPoint = userPoint + uint(tmaUser.TMAPoint)
-		}
-		e.Orm.Raw(
-			fmt.Sprintf("SELECT COUNT(*) FROM users u LEFT JOIN tma_users t ON u.telegram_id = t.telegram_id WHERE CASE WHEN u.level = 1 THEN u.point + COALESCE(t.tma_point, 0) WHEN u.level = 2 THEN u.point + COALESCE(t.tma_point, 0) + %d ELSE u.point + COALESCE(t.tma_point, 0) + %d END > ?", SENIOR_POINT, SENIOR_POINT+MASTER_POINT),
-			userPoint,
-		).Scan(&userCount)
+		//list[i].SolanaAccount = user.Wallet
+		//var trainCount int64
+		//e.Orm.Model(&models.Train{}).Where("\"user\" = ?", user.ID).Count(&trainCount)
+		//list[i].CompletedItems = int(trainCount)
+		//
+		//var userCount int64
+		//var userPoint uint
+		//if user.Level == uint(Beginner) {
+		//	userPoint = user.Point
+		//} else if user.Level == uint(Senior) {
+		//	userPoint = user.Point + SENIOR_POINT
+		//} else if user.Level == uint(Master) {
+		//	userPoint = user.Point + SENIOR_POINT + MASTER_POINT
+		//}
+		//var tmaUser models.TMAUser
+		//tmaUserResult := e.Orm.First(&tmaUser, "telegram_id = ?", user.TelegramID)
+		//if tmaUserResult.Error == nil {
+		//	userPoint = userPoint + uint(tmaUser.TMAPoint)
+		//}
+		//e.Orm.Raw(
+		//	fmt.Sprintf("SELECT COUNT(*) FROM users u LEFT JOIN tma_users t ON u.telegram_id = t.telegram_id WHERE CASE WHEN u.level = 1 THEN u.point + COALESCE(t.tma_point, 0) WHEN u.level = 2 THEN u.point + COALESCE(t.tma_point, 0) + %d ELSE u.point + COALESCE(t.tma_point, 0) + %d END > ?", SENIOR_POINT, SENIOR_POINT+MASTER_POINT),
+		//	userPoint,
+		//).Scan(&userCount)
 		var tgName *string
 		if user.TelegramName == nil {
 			tgName = user.TelegramFullName
 		} else {
 			tgName = user.TelegramName
 		}
-		var nearAddress models.UserNearAddress
-		e.Orm.First(&nearAddress, "\"user\" = ?", user.ID)
-		var ethereumAddress models.UserEthereumAddress
-		e.Orm.First(&ethereumAddress, "\"user\" = ?", user.ID)
+		//var nearAddress models.UserNearAddress
+		//e.Orm.First(&nearAddress, "\"user\" = ?", user.ID)
+		//var ethereumAddress models.UserEthereumAddress
+		//e.Orm.First(&ethereumAddress, "\"user\" = ?", user.ID)
 		list[i].TelegramName = tgName
-		list[i].Rank = int(userCount + 1)
-		list[i].EvmAccount = ethereumAddress.EthereumAddress
-		list[i].NearAccount = nearAddress.NearAddress
-		list[i].Point = userPoint
-		var uploadTimes int64
-		e.Orm.Model(&models.AITaskUploadRecord{}).Where("\"user\" = ? and success > 0", user.ID).Count(&uploadTimes)
-		list[i].UploadTimes = int(uploadTimes)
-		var contributionValue int64
-		e.Orm.Model(&models.AITaskUploadedFile{}).Where("\"user\" = ? and v_pass = true and a_pass = true", user.ID).Count(&contributionValue)
-		list[i].ContributionValue = int(contributionValue)
+		//list[i].Rank = int(userCount + 1)
+		//list[i].EvmAccount = ethereumAddress.EthereumAddress
+		//list[i].NearAccount = nearAddress.NearAddress
+		//list[i].Point = userPoint
+		//var uploadTimes int64
+		//e.Orm.Model(&models.AITaskUploadRecord{}).Where("\"user\" = ? and success > 0", user.ID).Count(&uploadTimes)
+		//list[i].UploadTimes = int(uploadTimes)
+		//var contributionValue int64
+		//e.Orm.Model(&models.AITaskUploadedFile{}).Where("\"user\" = ? and v_pass = true and a_pass = true", user.ID).Count(&contributionValue)
+		//list[i].ContributionValue = int(contributionValue)
 	}
 	e.PageOK(list, int(count), req.GetPageIndex(), req.GetPageSize(), "查询成功")
 }

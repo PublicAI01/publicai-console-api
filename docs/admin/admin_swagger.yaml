@@ -8,10 +8,15 @@ definitions:
     type: object
   dto.MarketplaceValidationUpdateReq:
     properties:
-      a_pass:
-        type: boolean
-      id:
-        type: integer
+      validations:
+        items:
+          properties:
+            a_pass:
+              type: boolean
+            id:
+              type: integer
+          type: object
+        type: array
     type: object
   dto.PassWord:
     properties:
@@ -1151,16 +1156,11 @@ paths:
       summary: 获取Campaign信息数据
       tags:
       - DataHub
-  /api/v1/data_hub/marketplace/campaign/validation/{id}:
     put:
       consumes:
       - application/json
       description: 获取JSON
       parameters:
-      - description: id
-        in: path
-        name: id
-        type: string
       - description: body
         in: body
         name: data

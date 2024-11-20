@@ -23,6 +23,6 @@ func registerDataHubUserRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMi
 		r.GET("/marketplace/campaign", apiMkt.GetPageCampaign)
 		r.GET("/marketplace/campaign/validation", apiMkt.GetCampaignValidation)
 		r.GET("/marketplace/campaign/reward", apiMkt.GetPageReward)
-		r.PUT("/marketplace/campaign/validation/:id", apiMkt.UpdateCampaignValidation)
+		r.PUT("/marketplace/campaign/validation", apiMkt.UpdateCampaignValidation)
 	}
 }

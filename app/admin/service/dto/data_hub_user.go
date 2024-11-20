@@ -8,6 +8,11 @@ type DataHubUserGetPageReq struct {
 	TelegramName   string `form:"telegram_name" search:"type:contains;column:telegram_name;table:users"`
 	TwitterName    string `form:"twitter_name" search:"type:contains;column:twitter_name;table:users"`
 	SolanaAccount  string `form:"solana_account" search:"type:contains;column:wallet;table:users"`
+	DataHubUserOrder
+}
+
+type DataHubUserOrder struct {
+	RankOrder string `search:"type:order;column:rank;table:users" form:"rankOrder"`
 }
 
 func (m *DataHubUserGetPageReq) GetNeedSearch() interface{} {

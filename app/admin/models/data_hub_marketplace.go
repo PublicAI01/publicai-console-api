@@ -2,18 +2,22 @@ package models
 
 import "time"
 
+type AITaskShowRecordItem struct {
+}
+
 type AITaskUploadRecord struct {
-	ID         uint      `gorm:"primaryKey;type:autoIncrement;autoIncrementIncrement:1" json:"id"`
-	User       uint      `gorm:"index" json:"user"`
-	Task       uint      `json:"task"`
-	TaskRecord uint      `gorm:"index" json:"task_record"`
-	Type       int       `json:"type"` // 0 Image 1 Text 2 Video 3 Audio
-	Total      int       `json:"total"`
-	Success    int       `json:"success"`
-	Files      string    `json:"files"`
-	Issued     int       `gorm:"default:0" json:"issued"`
-	Completed  int       `gorm:"default:0" json:"completed"`
-	CreatedAt  time.Time `gorm:"type:timestamptz;autoCreateTime:milli;default:null" json:"created_at"`
+	ID         uint                 `gorm:"primaryKey;type:autoIncrement;autoIncrementIncrement:1" json:"id"`
+	User       uint                 `gorm:"index" json:"user"`
+	Task       uint                 `json:"task"`
+	TaskRecord uint                 `gorm:"index" json:"task_record"`
+	Type       int                  `json:"type"` // 0 Image 1 Text 2 Video 3 Audio
+	Total      int                  `json:"total"`
+	Success    int                  `json:"success"`
+	Files      string               `json:"files"`
+	Issued     int                  `gorm:"default:0" json:"issued"`
+	Completed  int                  `gorm:"default:0" json:"completed"`
+	CreatedAt  time.Time            `gorm:"type:timestamptz;autoCreateTime:milli;default:null" json:"created_at"`
+	Items      []AITaskUploadedFile `json:"items" gorm:"-"`
 }
 
 func (*AITaskUploadRecord) TableName() string {

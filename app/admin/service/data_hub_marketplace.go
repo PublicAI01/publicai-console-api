@@ -1,12 +1,18 @@
 package service
 
 import (
-	"errors"
+	"bytes"
+	"encoding/json"
+	"fmt"
 	"github.com/go-admin-team/go-admin-core/sdk/service"
 	"go-admin/app/admin/models"
 	"go-admin/app/admin/service/dto"
 	"go-admin/common/actions"
 	cDto "go-admin/common/dto"
+	"go-admin/config"
+	"io/ioutil"
+	"net/http"
+	"net/url"
 )
 
 type DataHubMarketplace struct {
@@ -21,7 +27,7 @@ func (e *DataHubMarketplace) GetPageCampaign(c *dto.DataHubMarketplaceGetPageCam
 			cDto.MakeCondition(c.GetNeedSearch()),
 			cDto.Paginate(c.GetPageSize(), c.GetPageIndex()),
 			actions.Permission(data.TableName(), p),
-		).
+		).Order("created_at desc").
 		Find(list).Limit(-1).Offset(-1).
 		Count(count).Error
 	if err != nil {
@@ -31,9 +37,9 @@ func (e *DataHubMarketplace) GetPageCampaign(c *dto.DataHubMarketplaceGetPageCam
 	return nil
 }
 
-func (e *DataHubMarketplace) GetCampaignValidation(c *dto.DataHubMarketplaceGetCampaignValidationReq, p *actions.DataPermission, list *[]models.AITaskUploadedFile, count *int64) error {
+func (e *DataHubMarketplace) GetCampaignValidation(c *dto.DataHubMarketplaceGetCampaignValidationReq, p *actions.DataPermission, list *[]models.AITaskUploadRecord, count *int64) error {
 	var err error
-	var data models.AITaskUploadedFile
+	var data models.AITaskUploadRecord
 	err = e.Orm.Debug().
 		Scopes(
 			cDto.MakeCondition(c.GetNeedSearch()),
@@ -77,22 +83,57 @@ func (e *DataHubMarketplace) GetCampaignReward(c *dto.DataHubMarketplaceGetPageR
 }
 
 func (e *DataHubMarketplace) Update(c *dto.MarketplaceValidationUpdateReq, p *actions.DataPermission) error {
-	var model = models.AITaskUploadedFile{}
-	db := e.Orm.Debug().First(&model, c.Id)
-	if db.RowsAffected == 0 {
-		return errors.New("无权更新该数据")
-	}
-	model.APass = c.APass
-	status := -1
-	if c.APass {
-		status = 0
-	}
-	model.Status = status
-	db = e.Orm.Save(&model)
-	if err := db.Error; err != nil {
-		e.Log.Errorf("Service UpdateSysApi error:%s", err)
+	//var model = models.AITaskUploadedFile{}
+	//db := e.Orm.Debug().First(&model, c.Id)
+	//if db.RowsAffected == 0 {
+	//	return errors.New("无权更新该数据")
+	//}
+	//return nil
+	//model.APass = c.APass
+	//status := -1
+	//if c.APass {
+	//	status = 0
+	//}
+	//model.Status = status
+	//db = e.Orm.Save(&model)
+	//if err := db.Error; err != nil {
+	//	e.Log.Errorf("Service UpdateSysApi error:%s", err)
+	//	return err
+	//}
+	hubUrl := fmt.Sprintf("%s/api/admin/marketplace/campaign/validation", config.ExtConfig.DataHubIp)
+	params := url.Values{}
+	params.Set("token", config.ExtConfig.Token)
+	urlWithParams := fmt.Sprintf("%s?%s", hubUrl, params.Encode())
+	postBody, _ := json.Marshal(map[string]interface{}{
+		"validations": c.Validations,
+	})
+	// 将数据转换为字节序列
+	requestBody := bytes.NewBuffer(postBody)
+	req, err := http.NewRequest("PUT", urlWithParams, requestBody)
+	if err != nil {
 		return err
 	}
+	req.Header.Add("Content-Type", "application/json")
+	response, err := http.DefaultClient.Do(req)
+	defer response.Body.Close()
+	type PutResponse struct {
+		Data interface{} `json:"data"`
+		Msg  string      `json:"msg"`
+		Code int         `json:"code"`
+	}
+	var putResp PutResponse
+	if err == nil {
+		body, readErr := ioutil.ReadAll(response.Body)
+		fmt.Println(body)
+		if readErr == nil {
+			err = json.Unmarshal(body, &putResp)
+			if err == nil && putResp.Code == 200 {
+				return nil
+			}
+		} else {
+			err = readErr
+		}
+	}
 
-	return nil
+	return err
 }

@@ -15,7 +15,7 @@ func (m *DataHubMarketplaceGetPageCampaignReq) GetNeedSearch() interface{} {
 
 type DataHubMarketplaceGetCampaignValidationReq struct {
 	dto.Pagination `search:"-"`
-	TaskID         int `form:"task_id" search:"type:exact;column:task;table:ai_task_uploaded_files"`
+	TaskID         int `form:"task_id" search:"type:exact;column:task;table:ai_task_upload_records"`
 }
 
 func (m *DataHubMarketplaceGetCampaignValidationReq) GetNeedSearch() interface{} {
@@ -32,10 +32,12 @@ func (m *DataHubMarketplaceGetPageRewardReq) GetNeedSearch() interface{} {
 }
 
 type MarketplaceValidationUpdateReq struct {
-	Id    int  `uri:"id"`
-	APass bool `json:"a_pass"`
+	Validations []struct {
+		Id    int  `json:"id"`
+		APass bool `json:"a_pass"`
+	} `json:"validations"`
 }
 
 func (s *MarketplaceValidationUpdateReq) GetId() interface{} {
-	return s.Id
+	return s.Validations[0].Id
 }
