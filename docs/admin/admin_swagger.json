@@ -78,6 +78,212 @@
                 }
             }
         },
+        "/api/v1/data_hub/marketplace/campaign": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "获取JSON",
+                "tags": [
+                    "DataHub"
+                ],
+                "summary": "列表DataHub所有Campaign信息数据",
+                "responses": {
+                    "200": {
+                        "description": "{\"code\": 200, \"data\": [...]}",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/data_hub/marketplace/campaign/reward": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "获取JSON",
+                "tags": [
+                    "DataHub"
+                ],
+                "summary": "获取Campaign reward信息数据",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "task_id",
+                        "name": "task_id",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{\"code\": 200, \"data\": [...]}",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/data_hub/marketplace/campaign/validation": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "获取JSON",
+                "tags": [
+                    "DataHub"
+                ],
+                "summary": "获取Campaign信息数据",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "task_id",
+                        "name": "task_id",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{\"code\": 200, \"data\": [...]}",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "获取JSON",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "DataHub"
+                ],
+                "summary": "修改validation",
+                "parameters": [
+                    {
+                        "description": "body",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.MarketplaceValidationUpdateReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{\"code\": 200, \"message\": \"修改成功\"}",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/data_hub/user": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "获取JSON",
+                "tags": [
+                    "DataHub"
+                ],
+                "summary": "列表DataHub用户信息数据",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "email",
+                        "name": "email",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "telegram_name",
+                        "name": "telegram_name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "twitter_name",
+                        "name": "twitter_name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "solana_account",
+                        "name": "solana_account",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{\"code\": 200, \"data\": [...]}",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/data_hub/user/point": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "获取JSON",
+                "tags": [
+                    "DataHub"
+                ],
+                "summary": "列表DataHub用户积分信息数据",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "uid",
+                        "name": "uid",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "start_time",
+                        "name": "start_time",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "end_time",
+                        "name": "end_time",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{\"code\": 200, \"data\": [...]}",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/db/columns/page": {
             "get": {
                 "description": "数据库表列分页列表 / database table column page list",
@@ -1670,7 +1876,7 @@
                                                         "list": {
                                                             "type": "array",
                                                             "items": {
-                                                                "$ref": "#/definitions/models.SysApi"
+                                                                "$ref": "#/definitions/go-admin_app_admin_models.SysApi"
                                                             }
                                                         }
                                                     }
@@ -1748,7 +1954,7 @@
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/models.SysApi"
+                                            "$ref": "#/definitions/go-admin_app_admin_models.SysApi"
                                         }
                                     }
                                 }
@@ -1864,7 +2070,7 @@
                                                         "list": {
                                                             "type": "array",
                                                             "items": {
-                                                                "$ref": "#/definitions/models.SysApi"
+                                                                "$ref": "#/definitions/go-admin_app_admin_models.SysApi"
                                                             }
                                                         }
                                                     }
@@ -2792,6 +2998,25 @@
                 }
             }
         },
+        "dto.MarketplaceValidationUpdateReq": {
+            "type": "object",
+            "properties": {
+                "validations": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "a_pass": {
+                                "type": "boolean"
+                            },
+                            "id": {
+                                "type": "integer"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "dto.PassWord": {
             "type": "object",
             "properties": {
@@ -3032,17 +3257,11 @@
         "dto.SysDictDataDeleteReq": {
             "type": "object",
             "properties": {
-                "createBy": {
-                    "type": "integer"
-                },
                 "ids": {
                     "type": "array",
                     "items": {
                         "type": "integer"
                     }
-                },
-                "updateBy": {
-                    "type": "integer"
                 }
             }
         },
@@ -3310,7 +3529,7 @@
                 "sysApi": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/models.SysApi"
+                        "$ref": "#/definitions/go-admin_app_admin_models.SysApi"
                     }
                 },
                 "title": {
@@ -3397,7 +3616,7 @@
                 "sysApi": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/models.SysApi"
+                        "$ref": "#/definitions/go-admin_app_admin_models.SysApi"
                     }
                 },
                 "title": {
@@ -3565,13 +3784,13 @@
                 "sysDept": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/models.SysDept"
+                        "$ref": "#/definitions/go-admin_app_admin_models.SysDept"
                     }
                 },
                 "sysMenu": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/models.SysMenu"
+                        "$ref": "#/definitions/go-admin_app_admin_models.SysMenu"
                     }
                 },
                 "updateBy": {
@@ -3634,13 +3853,13 @@
                 "sysDept": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/models.SysDept"
+                        "$ref": "#/definitions/go-admin_app_admin_models.SysDept"
                     }
                 },
                 "sysMenu": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/models.SysMenu"
+                        "$ref": "#/definitions/go-admin_app_admin_models.SysMenu"
                     }
                 },
                 "updateBy": {
@@ -3786,30 +4005,7 @@
                 }
             }
         },
-        "handler.Login": {
-            "type": "object",
-            "required": [
-                "code",
-                "password",
-                "username",
-                "uuid"
-            ],
-            "properties": {
-                "code": {
-                    "type": "string"
-                },
-                "password": {
-                    "type": "string"
-                },
-                "username": {
-                    "type": "string"
-                },
-                "uuid": {
-                    "type": "string"
-                }
-            }
-        },
-        "models.SysApi": {
+        "go-admin_app_admin_models.SysApi": {
             "type": "object",
             "properties": {
                 "action": {
@@ -3844,7 +4040,7 @@
                 }
             }
         },
-        "models.SysConfig": {
+        "go-admin_app_admin_models.SysConfig": {
             "type": "object",
             "properties": {
                 "configKey": {
@@ -3882,13 +4078,13 @@
                 }
             }
         },
-        "models.SysDept": {
+        "go-admin_app_admin_models.SysDept": {
             "type": "object",
             "properties": {
                 "children": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/models.SysDept"
+                        "$ref": "#/definitions/go-admin_app_admin_models.SysDept"
                     }
                 },
                 "createBy": {
@@ -3946,7 +4142,7 @@
                 }
             }
         },
-        "models.SysMenu": {
+        "go-admin_app_admin_models.SysMenu": {
             "type": "object",
             "properties": {
                 "action": {
@@ -3964,7 +4160,7 @@
                 "children": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/models.SysMenu"
+                        "$ref": "#/definitions/go-admin_app_admin_models.SysMenu"
                     }
                 },
                 "component": {
@@ -4024,7 +4220,7 @@
                 "sysApi": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/models.SysApi"
+                        "$ref": "#/definitions/go-admin_app_admin_models.SysApi"
                     }
                 },
                 "title": {
@@ -4037,6 +4233,29 @@
                     "type": "string"
                 },
                 "visible": {
+                    "type": "string"
+                }
+            }
+        },
+        "handler.Login": {
+            "type": "object",
+            "required": [
+                "code",
+                "password",
+                "username",
+                "uuid"
+            ],
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                },
+                "uuid": {
                     "type": "string"
                 }
             }
@@ -4106,9 +4325,6 @@
                     "type": "integer"
                 },
                 "createdAt": {
-                    "type": "string"
-                },
-                "deletedAt": {
                     "type": "string"
                 },
                 "dictType": {
@@ -4241,9 +4457,6 @@
                     "type": "boolean"
                 },
                 "dataScope": {
-                    "type": "string"
-                },
-                "deletedAt": {
                     "type": "string"
                 },
                 "functionAuthor": {
