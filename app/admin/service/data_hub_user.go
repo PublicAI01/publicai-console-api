@@ -166,3 +166,42 @@ func (e *DataHubUser) GetPageUserPoint(c *dto.DataHubUserPointGetPageReq, p *act
 	}
 	return nil
 }
+
+func (e *DataHubUser) GetPageAllPoint(c *dto.DataHubUserGetAllRewardReq, p *actions.DataPermission, list *[]models.AllRewardItem, count *int64) error {
+	var err error
+	var data models.Train
+	orm := e.Orm.Debug().
+		Scopes(
+			cDto.MakeCondition(c.GetNeedSearch()),
+			cDto.Paginate(c.GetPageSize(), c.GetPageIndex()),
+			actions.Permission(data.TableName(), p),
+		)
+	// 按字段排序
+	orderCondition := "\"user\" ASC"
+	if c.PointOrder != "" {
+		if c.PointOrder == "descend" {
+			orderCondition = "point DESC"
+		} else {
+			orderCondition = "point ASC"
+		}
+	}
+	tempSize := c.GetPageSize()
+	offset := (c.GetPageIndex() - 1) * tempSize
+	err = orm.Raw(fmt.Sprintf("SELECT \"user\", COALESCE(SUM(point), 0) AS point FROM \"train_rewards\" WHERE point!=0 AND train_rewards.created_at >= to_timestamp(?) "+
+		"AND train_rewards.created_at <= to_timestamp(?) GROUP BY \"user\" ORDER BY %s LIMIT ? OFFSET ?", orderCondition),
+		c.StartTime, c.EndTime, tempSize, offset).Scan(list).Error
+
+	if err != nil {
+		e.Log.Errorf("db error: %s", err)
+		return err
+	}
+
+	err = orm.Raw("SELECT COUNT(*) FROM \"train_rewards\" WHERE point!=0 AND train_rewards.created_at >= to_timestamp(?) "+
+		"AND train_rewards.created_at <= to_timestamp(?) GROUP BY \"user\"", c.StartTime, c.EndTime).Scan(count).Error
+
+	if err != nil {
+		e.Log.Errorf("db error: %s", err)
+		return err
+	}
+	return nil
+}

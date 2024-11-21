@@ -31,3 +31,18 @@ type DataHubUserPointGetPageReq struct {
 func (m *DataHubUserPointGetPageReq) GetNeedSearch() interface{} {
 	return *m
 }
+
+type DataHubUserGetAllRewardReq struct {
+	dto.Pagination `search:"-"`
+	StartTime      string `form:"start_time" search:"type:gte;column:created_at;table:train_rewards"`
+	EndTime        string `form:"end_time" search:"type:lte;column:created_at;table:train_rewards"`
+	DataHubAllRewardOrder
+}
+
+type DataHubAllRewardOrder struct {
+	PointOrder string `search:"type:order;column:point;table:users" form:"pointOrder"`
+}
+
+func (m *DataHubUserGetAllRewardReq) GetNeedSearch() interface{} {
+	return *m
+}
