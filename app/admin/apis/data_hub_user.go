@@ -119,3 +119,41 @@ func (e DataHubUser) GetPageUserPoint(c *gin.Context) {
 		"data":  list,
 	}, int(count), req.GetPageIndex(), req.GetPageSize(), "查询成功")
 }
+
+// GetAllReward Get
+// @Summary 获取user reward信息数据
+// @Description 获取JSON
+// @Tags DataHub
+// @Param start_time query string false "start_time"
+// @Param end_time query string false "end_time"
+// @Success 200 {object} response.Response "{"code": 200, "data": [...]}"
+// @Router /api/v1/data_hub/user/reward [get]
+// @Security Bearer
+func (e DataHubUser) GetAllReward(c *gin.Context) {
+	s := service.DataHubUser{}
+	req := dto.DataHubUserGetAllRewardReq{}
+	err := e.MakeContext(c).
+		MakeOrm().
+		Bind(&req).
+		MakeService(&s.Service).
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+
+	//数据权限检查
+	p := actions.GetPermissionFromContext(c)
+
+	list := make([]models.AllRewardItem, 0)
+	var count int64
+
+	err = s.GetPageAllPoint(&req, p, &list, &count)
+	if err != nil {
+		e.Error(500, err, "查询失败")
+		return
+	}
+
+	e.PageOK(list, int(count), req.GetPageIndex(), req.GetPageSize(), "查询成功")
+}
