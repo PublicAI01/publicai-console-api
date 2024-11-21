@@ -81,7 +81,7 @@ FROM (
             ELSE u.point + COALESCE(t.tma_point, 0) + %d
         END AS point_total
     FROM users u
-    LEFT JOIN tma_users t ON u.telegram_id = t.telegram_id %s ORDER BY point_total DESC
+    LEFT JOIN tma_users t ON u.telegram_id = t.telegram_id %s
 ) as subquery ORDER BY %s
 ) AS subquery2 LIMIT ? OFFSET ?;
 `, 40000, 120000+40000, whereCondition, orderCondition),
