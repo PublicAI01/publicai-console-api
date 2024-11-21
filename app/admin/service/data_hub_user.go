@@ -25,27 +25,50 @@ func (e *DataHubUser) GetPageUser(c *dto.DataHubUserGetPageReq, p *actions.DataP
 	tempSize := c.GetPageSize()
 	offset := (c.GetPageIndex() - 1) * tempSize
 	whereCondition := ""
-
 	if c.Email != "" || c.TwitterName != "" || c.TelegramName != "" || c.SolanaAccount != "" {
 		whereCondition += "WHERE "
 		if c.Email != "" {
-			whereCondition += "email LIKE '%" + fmt.Sprintf("%s", c.Email) + "%' AND "
+			whereCondition += "email= '" + fmt.Sprintf("%s", c.Email) + "' AND "
 		}
 		if c.TwitterName != "" {
-			whereCondition += "twitter_name LIKE '%" + fmt.Sprintf("%s", c.TwitterName) + "%' AND "
+			whereCondition += "twitter_name= '" + fmt.Sprintf("%s", c.TwitterName) + "' AND "
 		}
 		if c.TelegramName != "" {
-			whereCondition += "telegram_name LIKE '%" + fmt.Sprintf("%s", c.TelegramName) + "%' AND "
+			whereCondition += "telegram_name='" + fmt.Sprintf("%s", c.TelegramName) + "' AND "
 		}
 		if c.SolanaAccount != "" {
-			whereCondition += "wallet LIKE '%" + fmt.Sprintf("%s", c.SolanaAccount) + "%'AND "
+			whereCondition += "wallet= '" + fmt.Sprintf("%s", c.SolanaAccount) + "' AND "
 		}
 		whereCondition += "1=1"
 	}
+	// 按字段排序
+	orderCondition := "created_at ASC"
+	if c.RankOrder != "" {
+		if c.RankOrder == "descend" {
+			orderCondition = "point_total ASC"
+		} else {
+			orderCondition = "point_total DESC"
+		}
+	} else if c.PointOrder != "" {
+		if c.PointOrder == "descend" {
+			orderCondition = "point_total DESC"
+		} else {
+			orderCondition = "point_total ASC"
+		}
+	} else if c.CompletedOrder != "" {
+		if c.CompletedOrder == "descend" {
+			orderCondition = "completed_items DESC"
+		} else {
+			orderCondition = "completed_items ASC"
+		}
+	}
 
 	err = orm.Raw(fmt.Sprintf(`
-SELECT id, email, name,     point, twitter_name, level, location, telegram_name, telegram_full_name, near_account,evm_account,completed_items,upload_times,contribution_value,created_at,
-    ROW_NUMBER() OVER (ORDER BY point_desc DESC) as rank
+SELECT id,rank, email, name,     point_total as point, twitter_name, level, location, telegram_name, telegram_full_name, near_account,evm_account,completed_items,upload_times,contribution_value,created_at
+FROM (
+    SELECT 
+    ROW_NUMBER() OVER (ORDER BY point_total DESC) as rank,
+    subquery.*
 FROM (
     SELECT 
 		    u.id, email, name, twitter_name, level, location, telegram_name, u.telegram_full_name, (SELECT near_address FROM user_near_addresses WHERE "user" = u.id) as near_account,
@@ -56,26 +79,26 @@ FROM (
             WHEN u.level = 1 THEN u.point + COALESCE(t.tma_point, 0)
             WHEN u.level = 2 THEN u.point + COALESCE(t.tma_point, 0) + %d
             ELSE u.point + COALESCE(t.tma_point, 0) + %d
-        END AS point_desc
+        END AS point_total
     FROM users u
-    LEFT JOIN tma_users t ON u.telegram_id = t.telegram_id %s LIMIT ? OFFSET ?
-) AS subquery
-ORDER BY point_desc DESC;
-`, 40000, 120000+40000, whereCondition),
+    LEFT JOIN tma_users t ON u.telegram_id = t.telegram_id %s ORDER BY point_total DESC
+) as subquery ORDER BY %s
+) AS subquery2 LIMIT ? OFFSET ?;
+`, 40000, 120000+40000, whereCondition, orderCondition),
 		tempSize, offset).Scan(list).Error
 
 	if err != nil {
 		e.Log.Errorf("db error: %s", err)
 		return err
 	}
-	err = orm.Raw(`
+	err = orm.Raw(fmt.Sprintf(`
 			SELECT COUNT(*)
 			FROM (
 				SELECT *
 				FROM users u
-				LEFT JOIN tma_users t ON u.telegram_id = t.telegram_id
+				LEFT JOIN tma_users t ON u.telegram_id = t.telegram_id %s
 			) as subquery;
-		`).Scan(count).Error
+		`, whereCondition)).Scan(count).Error
 	if err != nil {
 		e.Log.Errorf("db error: %s", err)
 		return err
