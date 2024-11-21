@@ -196,8 +196,8 @@ func (e *DataHubUser) GetPageAllPoint(c *dto.DataHubUserGetAllRewardReq, p *acti
 		return err
 	}
 
-	err = orm.Raw("SELECT COUNT(*) FROM \"train_rewards\" WHERE point!=0 AND train_rewards.created_at >= to_timestamp(?) "+
-		"AND train_rewards.created_at <= to_timestamp(?) GROUP BY \"user\"", c.StartTime, c.EndTime).Scan(count).Error
+	err = orm.Raw("SELECT COUNT(*) FROM (SELECT \"user\" FROM \"train_rewards\" WHERE point!=0 AND train_rewards.created_at >= to_timestamp(?) "+
+		"AND train_rewards.created_at <= to_timestamp(?) GROUP BY \"user\" ) AS subquery", c.StartTime, c.EndTime).Scan(count).Error
 
 	if err != nil {
 		e.Log.Errorf("db error: %s", err)
