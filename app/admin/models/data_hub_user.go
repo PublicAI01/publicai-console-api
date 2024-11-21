@@ -8,7 +8,7 @@ type DataHubUser struct {
 	Email *string `gorm:"type:varchar(40);default:null;index" json:"email"`
 	Name  string  `gorm:"type:varchar(20);default:null" json:"name"`
 	//Avatar           *string   `gorm:"type:varchar(300);default:null" json:"avatar"`
-	Wallet *string `gorm:"type:varchar(100);default:null" json:"-"`
+	Wallet *string `gorm:"type:varchar(100);default:null" json:"wallet"`
 	//Nonce            *string   `gorm:"type:varchar(10);default:null" json:"nonce"`
 	//InviteCode       string    `gorm:"type:varchar(10);default:null" json:"invite_code"`
 	Point uint `json:"point"`
@@ -26,7 +26,6 @@ type DataHubUser struct {
 	TelegramID        *string   `gorm:"type:varchar(40);default:null" json:"-"`
 	TelegramName      *string   `gorm:"type:varchar(40);default:null" json:"telegram_name"`
 	TelegramFullName  *string   `gorm:"type:varchar(40);default:null" json:"-"`
-	SolanaAccount     *string   `json:"solana_account"`
 	NearAccount       *string   `json:"near_account"`
 	EvmAccount        *string   `json:"evm_account"`
 	Rank              int       `json:"rank"`
