@@ -112,3 +112,8 @@ type RewardItem struct {
 	Point     uint      `json:"point"`
 	CreatedAt time.Time `json:"created_at"`
 }
+
+type AllRewardItem struct {
+	User  uint `json:"user"`
+	Point uint `json:"point"`
+}

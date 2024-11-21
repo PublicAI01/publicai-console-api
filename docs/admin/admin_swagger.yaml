@@ -1233,6 +1233,28 @@ paths:
       summary: 列表DataHub用户积分信息数据
       tags:
       - DataHub
+  /api/v1/data_hub/user/reward:
+    get:
+      description: 获取JSON
+      parameters:
+      - description: start_time
+        in: query
+        name: start_time
+        type: string
+      - description: end_time
+        in: query
+        name: end_time
+        type: string
+      responses:
+        "200":
+          description: '{"code": 200, "data": [...]}'
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - Bearer: []
+      summary: 获取user reward信息数据
+      tags:
+      - DataHub
   /api/v1/db/columns/page:
     get:
       description: 数据库表列分页列表 / database table column page list
