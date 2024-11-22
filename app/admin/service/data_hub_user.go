@@ -25,7 +25,7 @@ func (e *DataHubUser) GetPageUser(c *dto.DataHubUserGetPageReq, p *actions.DataP
 	tempSize := c.GetPageSize()
 	offset := (c.GetPageIndex() - 1) * tempSize
 	whereCondition := ""
-	if c.Email != "" || c.TwitterName != "" || c.TelegramName != "" || c.SolanaAccount != "" {
+	if c.Email != "" || c.TwitterName != "" || c.TelegramName != "" || c.SolanaAccount != "" || c.ID != 0 || c.UserName != "" {
 		whereCondition += "WHERE "
 		if c.Email != "" {
 			whereCondition += "email= '" + fmt.Sprintf("%s", c.Email) + "' AND "
@@ -38,6 +38,12 @@ func (e *DataHubUser) GetPageUser(c *dto.DataHubUserGetPageReq, p *actions.DataP
 		}
 		if c.SolanaAccount != "" {
 			whereCondition += "wallet= '" + fmt.Sprintf("%s", c.SolanaAccount) + "' AND "
+		}
+		if c.ID != 0 {
+			whereCondition += "u.id= " + fmt.Sprintf("%d", c.ID) + " AND "
+		}
+		if c.UserName != "" {
+			whereCondition += "name= '" + fmt.Sprintf("%s", c.UserName) + "' AND "
 		}
 		whereCondition += "1=1"
 	}
@@ -167,7 +173,7 @@ func (e *DataHubUser) GetPageUserPoint(c *dto.DataHubUserPointGetPageReq, p *act
 	return nil
 }
 
-func (e *DataHubUser) GetPageAllPoint(c *dto.DataHubUserGetAllRewardReq, p *actions.DataPermission, list *[]models.AllRewardItem, count *int64) error {
+func (e *DataHubUser) GetPageAllPoint(c *dto.DataHubUserGetAllRewardReq, p *actions.DataPermission, list *[]models.AllRewardItem, count *int64, average *int64) error {
 	var err error
 	var data models.Train
 	orm := e.Orm.Debug().
@@ -203,5 +209,43 @@ func (e *DataHubUser) GetPageAllPoint(c *dto.DataHubUserGetAllRewardReq, p *acti
 		e.Log.Errorf("db error: %s", err)
 		return err
 	}
+	err = orm.Raw("SELECT COALESCE(ROUND(AVG(point),0), 0) FROM (SELECT \"user\", COALESCE(SUM(point), 0) as point FROM \"train_rewards\" WHERE point!=0 AND train_rewards.created_at >= to_timestamp(?) "+
+		"AND train_rewards.created_at <= to_timestamp(?) GROUP BY \"user\" ) AS subquery", c.StartTime, c.EndTime).Scan(average).Error
+
+	if err != nil {
+		e.Log.Errorf("db error: %s", err)
+		return err
+	}
+	return nil
+}
+
+func (e *DataHubUser) GetPageAllPointExport(c *dto.DataHubUserGetAllRewardReq, p *actions.DataPermission, list *[]models.AllRewardItem) error {
+	var err error
+	var data models.Train
+	orm := e.Orm.Debug().
+		Scopes(
+			cDto.MakeCondition(c.GetNeedSearch()),
+			cDto.Paginate(c.GetPageSize(), c.GetPageIndex()),
+			actions.Permission(data.TableName(), p),
+		)
+	// 按字段排序
+	orderCondition := "\"user\" ASC"
+	if c.PointOrder != "" {
+		if c.PointOrder == "descend" {
+			orderCondition = "point DESC"
+		} else {
+			orderCondition = "point ASC"
+		}
+	}
+
+	err = orm.Raw(fmt.Sprintf("SELECT \"user\", COALESCE(SUM(point), 0) AS point FROM \"train_rewards\" WHERE point!=0 AND train_rewards.created_at >= to_timestamp(?) "+
+		"AND train_rewards.created_at <= to_timestamp(?) GROUP BY \"user\" ORDER BY %s", orderCondition),
+		c.StartTime, c.EndTime).Scan(list).Error
+
+	if err != nil {
+		e.Log.Errorf("db error: %s", err)
+		return err
+	}
+
 	return nil
 }
