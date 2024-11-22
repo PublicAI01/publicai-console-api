@@ -4,6 +4,8 @@ import "go-admin/common/dto"
 
 type DataHubUserGetPageReq struct {
 	dto.Pagination `search:"-"`
+	ID             int    `form:"id" search:"type:exact;column:id;table:users"`
+	UserName       string `form:"name" search:"type:exact;column:name;table:users"`
 	Email          string `form:"email" search:"type:exact;column:email;table:users"`
 	TelegramName   string `form:"telegram_name" search:"type:exact;column:telegram_name;table:users"`
 	TwitterName    string `form:"twitter_name" search:"type:exact;column:twitter_name;table:users"`

@@ -49,6 +49,10 @@ func (e DataHubMarketplace) GetPageCampaign(c *gin.Context) {
 		e.Error(500, err, "查询失败")
 		return
 	}
+	for i, item := range list {
+		list[i].USDTReward = item.USDTReward / 100
+		list[i].PointReward = item.PointReward / 100
+	}
 	e.PageOK(list, int(count), req.GetPageIndex(), req.GetPageSize(), "查询成功")
 }
 
