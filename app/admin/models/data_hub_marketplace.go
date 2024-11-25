@@ -2,7 +2,22 @@ package models
 
 import "time"
 
+type FileItem struct {
+	ID    int    `json:"id"`
+	Link  string `json:"link"`
+	VPass bool   `json:"v_pass"`
+	APass bool   `json:"a_pass"`
+}
 type AITaskShowRecordItem struct {
+	NO         int        `json:"no"`
+	ID         uint       `json:"id"`
+	DataNumber int        `json:"data_number"`
+	User       uint       `json:"user"`
+	Status     int        `json:"status"`
+	Valid      int        `json:"valid"`
+	UploadTime time.Time  `json:"upload_time"`
+	Items      []FileItem `json:"items" gorm:"-"`
+	//Items []AITaskUploadedFile `json:"items" gorm:"-"`
 }
 
 type AITaskUploadRecord struct {

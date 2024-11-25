@@ -81,7 +81,7 @@ func (e DataHubMarketplace) GetCampaignValidation(c *gin.Context) {
 	//数据权限检查
 	p := actions.GetPermissionFromContext(c)
 
-	list := make([]models.AITaskUploadRecord, 0)
+	list := make([]models.AITaskShowRecordItem, 0)
 	var count int64
 
 	err = s.GetCampaignValidation(&req, p, &list, &count)
@@ -89,10 +89,20 @@ func (e DataHubMarketplace) GetCampaignValidation(c *gin.Context) {
 		e.Error(500, err, "查询失败")
 		return
 	}
+
 	for i, item := range list {
 		var files []models.AITaskUploadedFile
 		e.Orm.Find(&files, "upload_record = ?", item.ID)
-		list[i].Items = files
+		fileItems := make([]models.FileItem, len(files))
+		for j, file := range files {
+			fileItems[j] = models.FileItem{
+				ID:    int(file.ID),
+				Link:  file.Link,
+				VPass: file.VPass,
+				APass: file.APass,
+			}
+		}
+		list[i].Items = fileItems
 	}
 	e.PageOK(list, int(count), req.GetPageIndex(), req.GetPageSize(), "查询成功")
 }

@@ -37,21 +37,59 @@ func (e *DataHubMarketplace) GetPageCampaign(c *dto.DataHubMarketplaceGetPageCam
 	return nil
 }
 
-func (e *DataHubMarketplace) GetCampaignValidation(c *dto.DataHubMarketplaceGetCampaignValidationReq, p *actions.DataPermission, list *[]models.AITaskUploadRecord, count *int64) error {
+func (e *DataHubMarketplace) GetCampaignValidation(c *dto.DataHubMarketplaceGetCampaignValidationReq, p *actions.DataPermission, list *[]models.AITaskShowRecordItem, count *int64) error {
 	var err error
 	var data models.AITaskUploadRecord
-	err = e.Orm.Debug().
+	orm := e.Orm.Debug().
 		Scopes(
 			cDto.MakeCondition(c.GetNeedSearch()),
 			cDto.Paginate(c.GetPageSize(), c.GetPageIndex()),
 			actions.Permission(data.TableName(), p),
-		).
-		Find(list).Limit(-1).Offset(-1).
-		Count(count).Error
+		)
+	tempSize := c.GetPageSize()
+	offset := (c.GetPageIndex() - 1) * tempSize
+	err = orm.Raw(`
+SELECT 
+    ROW_NUMBER() OVER() AS no,
+    u."id",
+    u.success as data_number,
+    u."user",
+    CASE 
+        WHEN u.issued = 0 THEN -1
+        WHEN u.completed >= (SELECT consensus 
+    FROM ai_tasks 
+    WHERE "id" = ?) THEN 1
+        ELSE 0
+    END AS status,
+    (SELECT COUNT(*) 
+     FROM ai_task_uploaded_files 
+     WHERE upload_record = u."id" AND a_pass = TRUE) AS valid,
+    u.created_at AS upload_time
+FROM 
+    ai_task_upload_records AS u WHERE u.task= ? LIMIT ? OFFSET ?`,
+		c.TaskID, c.TaskID, tempSize, offset).Scan(&list).Error
 	if err != nil {
 		e.Log.Errorf("db error: %s", err)
 		return err
 	}
+	err = orm.Raw("SELECT COUNT(*) FROM ai_task_upload_records WHERE task = ?  ", c.TaskID).Scan(count).Error
+	if err != nil {
+		e.Log.Errorf("db error: %s", err)
+		return err
+	}
+	//var data models.AITaskUploadRecord
+	//err = e.Orm.Debug().
+	//	Scopes(
+	//		cDto.MakeCondition(c.GetNeedSearch()),
+	//		cDto.Paginate(c.GetPageSize(), c.GetPageIndex()),
+	//		actions.Permission(data.TableName(), p),
+	//	).
+	//	Find(list).Limit(-1).Offset(-1).
+	//	Count(count).Error
+	//if err != nil {
+	//	e.Log.Errorf("db error: %s", err)
+	//	return err
+	//}
 	return nil
 }
 
