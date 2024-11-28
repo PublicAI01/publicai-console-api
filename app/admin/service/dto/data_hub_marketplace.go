@@ -41,3 +41,24 @@ type MarketplaceValidationUpdateReq struct {
 func (s *MarketplaceValidationUpdateReq) GetId() interface{} {
 	return s.Validations[0].Id
 }
+
+type DataHubMarketplaceGetCampaignDisputeReq struct {
+	dto.Pagination `search:"-"`
+	TaskID         int `form:"task_id" search:"type:exact;column:task;table:ai_task_upload_records"`
+}
+
+func (m *DataHubMarketplaceGetCampaignDisputeReq) GetNeedSearch() interface{} {
+	return *m
+}
+
+type MarketplaceDisputeUpdateReq struct {
+	TaskID      int `json:"task_id"`
+	Validations []struct {
+		Id    int  `json:"id"`
+		APass bool `json:"a_pass"`
+	} `json:"validations"`
+}
+
+func (s *MarketplaceDisputeUpdateReq) GetId() interface{} {
+	return s.Validations[0].Id
+}

@@ -20,6 +20,23 @@ type AITaskShowRecordItem struct {
 	//Items []AITaskUploadedFile `json:"items" gorm:"-"`
 }
 
+type FileDisputeItem struct {
+	ID   int    `json:"id"`
+	Link string `json:"link"`
+	VAye int    `json:"v_aye"`
+	VNay int    `json:"v_nay"`
+}
+type AITaskShowDisputeRecordItem struct {
+	NO         int               `json:"no"`
+	ID         uint              `json:"id"`
+	DataNumber int               `json:"data_number"`
+	User       uint              `json:"user"`
+	Status     int               `json:"status"`
+	Valid      int               `json:"valid"`
+	UploadTime time.Time         `json:"upload_time"`
+	Items      []FileDisputeItem `json:"items" gorm:"-"`
+}
+
 type AITaskUploadRecord struct {
 	ID         uint                 `gorm:"primaryKey;type:autoIncrement;autoIncrementIncrement:1" json:"id"`
 	User       uint                 `gorm:"index" json:"user"`

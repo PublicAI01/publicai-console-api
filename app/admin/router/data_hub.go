@@ -26,5 +26,10 @@ func registerDataHubUserRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMi
 		r.PUT("/marketplace/campaign/validation", apiMkt.UpdateCampaignValidation)
 		r.GET("/user/reward", api.GetAllReward)
 		r.GET("/user/reward/export", api.GetAllRewardExport)
+		r.GET("/marketplace/campaign/validation/dispute", apiMkt.GetCampaignDispute)
+		r.PUT("/marketplace/campaign/validation/dispute", apiMkt.UpdateCampaignDispute)
+		r.GET("/user/ambassador", api.GetPageAmbassadors)
+		r.PUT("/user/ambassador", api.UpdateAmbassadors)
+		r.GET("/user/ambassador/export", api.GetAmbassadorsExport)
 	}
 }

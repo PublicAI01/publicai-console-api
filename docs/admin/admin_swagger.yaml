@@ -6,6 +6,32 @@ definitions:
       configValue:
         type: string
     type: object
+  dto.MarketplaceAmbassadorUpdateReq:
+    properties:
+      ambassadors:
+        items:
+          properties:
+            flag:
+              type: boolean
+            id:
+              type: integer
+          type: object
+        type: array
+    type: object
+  dto.MarketplaceDisputeUpdateReq:
+    properties:
+      task_id:
+        type: integer
+      validations:
+        items:
+          properties:
+            a_pass:
+              type: boolean
+            id:
+              type: integer
+          type: object
+        type: array
+    type: object
   dto.MarketplaceValidationUpdateReq:
     properties:
       validations:
@@ -1177,6 +1203,45 @@ paths:
       summary: 修改validation
       tags:
       - DataHub
+  /api/v1/data_hub/marketplace/campaign/validation/dispute:
+    get:
+      description: 获取JSON
+      parameters:
+      - description: task_id
+        in: query
+        name: task_id
+        type: string
+      responses:
+        "200":
+          description: '{"code": 200, "data": [...]}'
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - Bearer: []
+      summary: 获取Campaign争议的题目信息数据
+      tags:
+      - DataHub
+    put:
+      consumes:
+      - application/json
+      description: 获取JSON
+      parameters:
+      - description: body
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/dto.MarketplaceDisputeUpdateReq'
+      responses:
+        "200":
+          description: '{"code": 200, "message": "修改成功"}'
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - Bearer: []
+      summary: 修改dispute
+      tags:
+      - DataHub
   /api/v1/data_hub/user:
     get:
       description: 获取JSON
@@ -1205,6 +1270,53 @@ paths:
       security:
       - Bearer: []
       summary: 列表DataHub用户信息数据
+      tags:
+      - DataHub
+  /api/v1/data_hub/user/ambassador:
+    get:
+      description: 获取JSON
+      responses:
+        "200":
+          description: '{"code": 200, "data": [...]}'
+          schema:
+            type: string
+      security:
+      - Bearer: []
+      summary: 列表DataHub大使信息数据
+      tags:
+      - DataHub
+    put:
+      consumes:
+      - application/json
+      description: 获取JSON
+      parameters:
+      - description: body
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/dto.MarketplaceAmbassadorUpdateReq'
+      responses:
+        "200":
+          description: '{"code": 200, "message": "修改成功"}'
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - Bearer: []
+      summary: 修改ambassador
+      tags:
+      - DataHub
+  /api/v1/data_hub/user/ambassador/export:
+    get:
+      description: 获取JSON
+      responses:
+        "200":
+          description: '{"code": 200, "data": [...]}'
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - Bearer: []
+      summary: 导出ambassadors信息数据
       tags:
       - DataHub
   /api/v1/data_hub/user/point:
