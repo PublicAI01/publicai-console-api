@@ -117,3 +117,19 @@ type AllRewardItem struct {
 	User  uint `json:"user"`
 	Point uint `json:"point"`
 }
+
+type DataHubAmbassador struct {
+	ID                    uint    `gorm:"primaryKey;type:autoIncrement;autoIncrementIncrement:1" json:"id"`
+	Email                 *string `gorm:"type:varchar(40);default:null;index" json:"email"`
+	Name                  string  `gorm:"type:varchar(20);default:null" json:"name"`
+	TwitterName           *string `gorm:"type:varchar(20);default:null" json:"twitter_name"`
+	Location              *string `json:"location"`
+	TelegramID            *string `gorm:"type:varchar(40);default:null" json:"-"`
+	TelegramName          *string `gorm:"type:varchar(40);default:null" json:"telegram_name"`
+	TelegramFullName      *string `gorm:"type:varchar(40);default:null" json:"-"`
+	ConsensusContribution int     `json:"consensus_contribution"`
+}
+
+func (*DataHubAmbassador) TableName() string {
+	return "users"
+}

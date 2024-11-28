@@ -1,12 +1,18 @@
 package service
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"github.com/go-admin-team/go-admin-core/sdk/service"
 	"go-admin/app/admin/models"
 	"go-admin/app/admin/service/dto"
 	"go-admin/common/actions"
 	cDto "go-admin/common/dto"
+	"go-admin/config"
+	"io/ioutil"
+	"net/http"
+	"net/url"
 )
 
 type DataHubUser struct {
@@ -241,6 +247,142 @@ func (e *DataHubUser) GetPageAllPointExport(c *dto.DataHubUserGetAllRewardReq, p
 	err = orm.Raw(fmt.Sprintf("SELECT \"user\", COALESCE(SUM(point), 0) AS point FROM \"train_rewards\" WHERE point!=0 AND train_rewards.created_at >= to_timestamp(?) "+
 		"AND train_rewards.created_at <= to_timestamp(?) GROUP BY \"user\" ORDER BY %s", orderCondition),
 		c.StartTime, c.EndTime).Scan(list).Error
+
+	if err != nil {
+		e.Log.Errorf("db error: %s", err)
+		return err
+	}
+
+	return nil
+}
+
+func (e *DataHubUser) GetPageAmbassador(c *dto.DataHubAmbassadorGetPageReq, p *actions.DataPermission, list *[]models.DataHubAmbassador, count *int64) error {
+	var err error
+	var data models.DataHubAmbassador
+	orm := e.Orm.Debug().
+		Scopes(
+			cDto.MakeCondition(c.GetNeedSearch()),
+			cDto.Paginate(c.GetPageSize(), c.GetPageIndex()),
+			actions.Permission(data.TableName(), p),
+		)
+	tempSize := c.GetPageSize()
+	offset := (c.GetPageIndex() - 1) * tempSize
+	whereCondition := "WHERE "
+	if c.ID != 0 {
+		if c.ID != 0 {
+			whereCondition += "u.id= " + fmt.Sprintf("%d", c.ID) + " AND "
+		}
+
+	}
+	whereCondition += " ambassador=TRUE "
+	// 按字段排序
+	orderCondition := "consensus_contribution DESC"
+	if c.ContributionOrder != "" {
+		if c.ContributionOrder == "descend" {
+			orderCondition = "consensus_contribution DESC"
+		} else {
+			orderCondition = "consensus_contribution ASC"
+		}
+	}
+
+	err = orm.Raw(fmt.Sprintf(`SELECT id, email, name,  twitter_name, location, telegram_name, telegram_full_name,
+	      (SELECT COUNT(*) FROM ai_task_trains WHERE "user" = u.id) as consensus_contribution FROM users u
+	       %s ORDER BY %s LIMIT ? OFFSET ?;
+	`, whereCondition, orderCondition),
+		tempSize, offset).Scan(list).Error
+	//	err = orm.Raw(fmt.Sprintf(`SELECT
+	//    u.id,
+	//    u.email,
+	//    u.name,
+	//    u.twitter_name,
+	//    u.location,
+	//    u.telegram_name,
+	//    u.telegram_full_name,
+	//    COUNT(a.id) AS consensus_contribution
+	//FROM
+	//    users u %s
+	//LEFT JOIN
+	//    ai_task_trains a ON a."user" = u.id
+	//GROUP BY
+	//    u.id, u.email, u.name, u.twitter_name, u.location, u.telegram_name, u.telegram_full_name
+	//ORDER BY %s LIMIT ? OFFSET ?`, whereCondition, orderCondition), tempSize, offset).Scan(list).Error
+	if err != nil {
+		e.Log.Errorf("db error: %s", err)
+		return err
+	}
+	err = orm.Raw(fmt.Sprintf(`
+			SELECT COUNT(*)
+			FROM users %s;
+		`, whereCondition)).Scan(count).Error
+	if err != nil {
+		e.Log.Errorf("db error: %s", err)
+		return err
+	}
+	return nil
+}
+
+func (e *DataHubUser) UpdateAmbassador(c *dto.MarketplaceAmbassadorUpdateReq, p *actions.DataPermission) error {
+	hubUrl := fmt.Sprintf("%s/api/admin/user/ambassador", config.ExtConfig.DataHubIp)
+	params := url.Values{}
+	params.Set("token", config.ExtConfig.Token)
+	urlWithParams := fmt.Sprintf("%s?%s", hubUrl, params.Encode())
+	postBody, _ := json.Marshal(map[string]interface{}{
+		"ambassadors": c.Ambassadors,
+	})
+	// 将数据转换为字节序列
+	requestBody := bytes.NewBuffer(postBody)
+	req, err := http.NewRequest("PUT", urlWithParams, requestBody)
+	if err != nil {
+		return err
+	}
+	req.Header.Add("Content-Type", "application/json")
+	response, err := http.DefaultClient.Do(req)
+	defer response.Body.Close()
+	type PutResponse struct {
+		Data interface{} `json:"data"`
+		Msg  string      `json:"msg"`
+		Code int         `json:"code"`
+	}
+	var putResp PutResponse
+	if err == nil {
+		body, readErr := ioutil.ReadAll(response.Body)
+		fmt.Println(body)
+		if readErr == nil {
+			err = json.Unmarshal(body, &putResp)
+			if err == nil && putResp.Code == 200 {
+				return nil
+			}
+		} else {
+			err = readErr
+		}
+	}
+
+	return err
+}
+
+func (e *DataHubUser) GetPageAmbassadorExport(c *dto.DataHubExportAmbassadorReq, p *actions.DataPermission, list *[]models.DataHubAmbassador) error {
+	var err error
+	var data models.Train
+	orm := e.Orm.Debug().
+		Scopes(
+			cDto.MakeCondition(c.GetNeedSearch()),
+			cDto.Paginate(c.GetPageSize(), c.GetPageIndex()),
+			actions.Permission(data.TableName(), p),
+		)
+	// 按字段排序
+	orderCondition := "consensus_contribution DESC"
+	if c.ContributionOrder != "" {
+		if c.ContributionOrder == "descend" {
+			orderCondition = "consensus_contribution DESC"
+		} else {
+			orderCondition = "consensus_contribution ASC"
+		}
+	}
+
+	err = orm.Raw(fmt.Sprintf(`SELECT id, email, name,  twitter_name, location, telegram_name, telegram_full_name, 
+       (SELECT COUNT(*) FROM ai_task_trains WHERE "user" = u.id) as consensus_contribution FROM users as u 
+        where  ambassador=TRUE ORDER BY %s;
+`, orderCondition)).Scan(list).Error
 
 	if err != nil {
 		e.Log.Errorf("db error: %s", err)
