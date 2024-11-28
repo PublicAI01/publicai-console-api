@@ -48,3 +48,41 @@ type DataHubAllRewardOrder struct {
 func (m *DataHubUserGetAllRewardReq) GetNeedSearch() interface{} {
 	return *m
 }
+
+type DataHubAmbassadorGetPageReq struct {
+	dto.Pagination `search:"-"`
+	ID             int `form:"id" search:"type:exact;column:id;table:users"`
+	DataHubAmbassadorOrder
+}
+
+type DataHubAmbassadorOrder struct {
+	ContributionOrder string `search:"type:order;column:consensus_contribution;table:users" form:"consensus_contributionOrder"`
+}
+
+func (m *DataHubAmbassadorGetPageReq) GetNeedSearch() interface{} {
+	return *m
+}
+
+type MarketplaceAmbassadorUpdateReq struct {
+	Ambassadors []struct {
+		Id   int  `json:"id"`
+		Flag bool `json:"flag"`
+	} `json:"ambassadors"`
+}
+
+func (s *MarketplaceAmbassadorUpdateReq) GetId() interface{} {
+	return s.Ambassadors[0].Id
+}
+
+type DataHubExportAmbassadorReq struct {
+	dto.Pagination `search:"-"`
+	DataHubExportAmbassadorOrder
+}
+
+type DataHubExportAmbassadorOrder struct {
+	ContributionOrder string `search:"type:order;column:point;table:users" form:"contributionOrder"`
+}
+
+func (m *DataHubExportAmbassadorReq) GetNeedSearch() interface{} {
+	return *m
+}

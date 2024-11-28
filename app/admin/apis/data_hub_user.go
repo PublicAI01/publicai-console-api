@@ -3,6 +3,7 @@ package apis
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
 	"github.com/go-admin-team/go-admin-core/sdk/api"
 	"github.com/xuri/excelize/v2"
 	"go-admin/app/admin/models"
@@ -225,6 +226,163 @@ func (e DataHubUser) GetAllRewardExport(c *gin.Context) {
 	//}, int(count), req.GetPageIndex(), req.GetPageSize(), "查询成功")
 	c.Header("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
 	filename := fmt.Sprintf("points_%s_%s.xlsx", req.StartTime, req.EndTime)
+	c.Header("Content-Disposition", "attachment; filename="+filename)
+	if err := f.Write(c.Writer); err != nil {
+		e.Error(500, err, "导出失败")
+		return
+	}
+	//e.OK(0, "export success")
+}
+
+// GetPageAmbassadors
+// @Summary 列表DataHub大使信息数据
+// @Description 获取JSON
+// @Tags DataHub
+// @Success 200 {string} {object} response.Response "{"code": 200, "data": [...]}"
+// @Router /api/v1/data_hub/user/ambassador [get]
+// @Security Bearer
+func (e DataHubUser) GetPageAmbassadors(c *gin.Context) {
+	s := service.DataHubUser{}
+	req := dto.DataHubAmbassadorGetPageReq{}
+	err := e.MakeContext(c).
+		MakeOrm().
+		Bind(&req).
+		MakeService(&s.Service).
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+	//数据权限检查
+	p := actions.GetPermissionFromContext(c)
+
+	list := make([]models.DataHubAmbassador, 0)
+	var count int64
+
+	err = s.GetPageAmbassador(&req, p, &list, &count)
+	if err != nil {
+		e.Error(500, err, "查询失败")
+		return
+	}
+	for i, user := range list {
+		var tgName *string
+		if user.TelegramName == nil {
+			tgName = user.TelegramFullName
+		} else {
+			tgName = user.TelegramName
+		}
+		list[i].TelegramName = tgName
+	}
+	e.PageOK(list, int(count), req.GetPageIndex(), req.GetPageSize(), "查询成功")
+}
+
+// UpdateAmbassadors Update 修改ambassador
+// @Summary 修改ambassador
+// @Description 获取JSON
+// @Tags DataHub
+// @Accept  application/json
+// @Product application/json
+// @Param data body dto.MarketplaceAmbassadorUpdateReq true "body"
+// @Success 200 {object} response.Response	"{"code": 200, "message": "修改成功"}"
+// @Router /api/v1/data_hub/user/ambassador [put]
+// @Security Bearer
+func (e DataHubUser) UpdateAmbassadors(c *gin.Context) {
+	s := service.DataHubUser{}
+	req := dto.MarketplaceAmbassadorUpdateReq{}
+	err := e.MakeContext(c).
+		MakeOrm().
+		Bind(&req, binding.JSON, nil).
+		MakeService(&s.Service).
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		return
+	}
+	p := actions.GetPermissionFromContext(c)
+	err = s.UpdateAmbassador(&req, p)
+	if err != nil {
+		e.Error(500, err, "更新失败")
+		return
+	}
+	e.OK(req.GetId(), "更新成功")
+}
+
+// GetAmbassadorsExport Get
+// @Summary 导出ambassadors信息数据
+// @Description 获取JSON
+// @Tags DataHub
+// @Success 200 {object} response.Response "{"code": 200, "data": [...]}"
+// @Router /api/v1/data_hub/user/ambassador/export [get]
+// @Security Bearer
+func (e DataHubUser) GetAmbassadorsExport(c *gin.Context) {
+	s := service.DataHubUser{}
+	req := dto.DataHubExportAmbassadorReq{}
+	err := e.MakeContext(c).
+		MakeOrm().
+		Bind(&req).
+		MakeService(&s.Service).
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+
+	//数据权限检查
+	p := actions.GetPermissionFromContext(c)
+
+	list := make([]models.DataHubAmbassador, 0)
+
+	err = s.GetPageAmbassadorExport(&req, p, &list)
+	if err != nil {
+		e.Error(500, err, "查询失败")
+		return
+	}
+	f := excelize.NewFile()
+	defer func() {
+		if err := f.Close(); err != nil {
+			fmt.Println(err)
+		}
+	}()
+	// Create a new sheet.
+	index, err := f.NewSheet("points counting")
+	if err != nil {
+		e.Error(500, err, "导出失败")
+		return
+	}
+	// Set value of a cell.
+	f.SetCellValue("points counting", "A1", "User ID")
+	f.SetCellValue("points counting", "B1", "User name")
+	f.SetCellValue("points counting", "C1", "Location")
+	f.SetCellValue("points counting", "D1", "Email")
+	f.SetCellValue("points counting", "E1", "Tg Account")
+	f.SetCellValue("points counting", "F1", "X Account")
+	f.SetCellValue("points counting", "G1", "Consensus Contribution")
+	for i, item := range list {
+		f.SetCellValue("points counting", fmt.Sprintf("A%d", i+2), item.ID)
+		f.SetCellValue("points counting", fmt.Sprintf("B%d", i+2), item.Name)
+		f.SetCellValue("points counting", fmt.Sprintf("C%d", i+2), item.Location)
+		f.SetCellValue("points counting", fmt.Sprintf("D%d", i+2), item.Email)
+		var tgName *string
+		if item.TelegramName == nil {
+			tgName = item.TelegramFullName
+		} else {
+			tgName = item.TelegramName
+		}
+		f.SetCellValue("points counting", fmt.Sprintf("E%d", i+2), tgName)
+		f.SetCellValue("points counting", fmt.Sprintf("F%d", i+2), item.TwitterName)
+		f.SetCellValue("points counting", fmt.Sprintf("G%d", i+2), item.ConsensusContribution)
+	}
+	// Set active sheet of the workbook.
+	f.SetActiveSheet(index)
+	f.DeleteSheet("Sheet1")
+	//e.PageOK(map[string]interface{}{
+	//	"average": average,
+	//	"data":    list,
+	//}, int(count), req.GetPageIndex(), req.GetPageSize(), "查询成功")
+	c.Header("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+	filename := "ambassadors.xlsx"
 	c.Header("Content-Disposition", "attachment; filename="+filename)
 	if err := f.Write(c.Writer); err != nil {
 		e.Error(500, err, "导出失败")
