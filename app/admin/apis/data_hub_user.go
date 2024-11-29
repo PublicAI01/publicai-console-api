@@ -346,33 +346,49 @@ func (e DataHubUser) GetAmbassadorsExport(c *gin.Context) {
 		}
 	}()
 	// Create a new sheet.
-	index, err := f.NewSheet("points counting")
+	index, err := f.NewSheet("ambassadors")
 	if err != nil {
 		e.Error(500, err, "导出失败")
 		return
 	}
 	// Set value of a cell.
-	f.SetCellValue("points counting", "A1", "User ID")
-	f.SetCellValue("points counting", "B1", "User name")
-	f.SetCellValue("points counting", "C1", "Location")
-	f.SetCellValue("points counting", "D1", "Email")
-	f.SetCellValue("points counting", "E1", "Tg Account")
-	f.SetCellValue("points counting", "F1", "X Account")
-	f.SetCellValue("points counting", "G1", "Consensus Contribution")
+	f.SetCellValue("ambassadors", "A1", "User ID")
+	f.SetCellValue("ambassadors", "B1", "User name")
+	f.SetCellValue("ambassadors", "C1", "Location")
+	f.SetCellValue("ambassadors", "D1", "Email")
+	f.SetCellValue("ambassadors", "E1", "Tg Account")
+	f.SetCellValue("ambassadors", "F1", "X Account")
+	f.SetCellValue("ambassadors", "G1", "Consensus Contribution")
 	for i, item := range list {
-		f.SetCellValue("points counting", fmt.Sprintf("A%d", i+2), item.ID)
-		f.SetCellValue("points counting", fmt.Sprintf("B%d", i+2), item.Name)
-		f.SetCellValue("points counting", fmt.Sprintf("C%d", i+2), item.Location)
-		f.SetCellValue("points counting", fmt.Sprintf("D%d", i+2), item.Email)
+		var location interface{}
+		var email interface{}
+		var twitterName interface{}
+		var telegramName interface{}
+		if item.Location != nil {
+			location = *item.Location
+		}
+		if item.Email != nil {
+			email = *item.Email
+		}
+		if item.TwitterName != nil {
+			twitterName = *item.TwitterName
+		}
+		f.SetCellValue("ambassadors", fmt.Sprintf("A%d", i+2), item.ID)
+		f.SetCellValue("ambassadors", fmt.Sprintf("B%d", i+2), item.Name)
+		f.SetCellValue("ambassadors", fmt.Sprintf("C%d", i+2), location)
+		f.SetCellValue("ambassadors", fmt.Sprintf("D%d", i+2), email)
 		var tgName *string
 		if item.TelegramName == nil {
 			tgName = item.TelegramFullName
 		} else {
 			tgName = item.TelegramName
 		}
-		f.SetCellValue("points counting", fmt.Sprintf("E%d", i+2), tgName)
-		f.SetCellValue("points counting", fmt.Sprintf("F%d", i+2), item.TwitterName)
-		f.SetCellValue("points counting", fmt.Sprintf("G%d", i+2), item.ConsensusContribution)
+		if tgName != nil {
+			telegramName = *tgName
+		}
+		f.SetCellValue("ambassadors", fmt.Sprintf("E%d", i+2), telegramName)
+		f.SetCellValue("ambassadors", fmt.Sprintf("F%d", i+2), twitterName)
+		f.SetCellValue("ambassadors", fmt.Sprintf("G%d", i+2), item.ConsensusContribution)
 	}
 	// Set active sheet of the workbook.
 	f.SetActiveSheet(index)
