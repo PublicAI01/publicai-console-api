@@ -48,7 +48,16 @@ func (e *DataHubMarketplace) GetCampaignValidation(c *dto.DataHubMarketplaceGetC
 		)
 	tempSize := c.GetPageSize()
 	offset := (c.GetPageIndex() - 1) * tempSize
-	err = orm.Raw(`
+	// 按字段排序
+	orderCondition := "upload_time ASC"
+	if c.CreatedAtOrder != "" {
+		if c.CreatedAtOrder == "descend" {
+			orderCondition = "upload_time DESC"
+		} else {
+			orderCondition = "upload_time ASC"
+		}
+	}
+	err = orm.Raw(fmt.Sprintf(`
 SELECT 
     ROW_NUMBER() OVER() AS no,
     u."id",
@@ -66,7 +75,7 @@ SELECT
      WHERE upload_record = u."id" AND a_pass = TRUE) AS valid,
     u.created_at AS upload_time
 FROM 
-    ai_task_upload_records AS u WHERE u.task= ? LIMIT ? OFFSET ?`,
+    ai_task_upload_records AS u WHERE u.task= ? ORDER BY %s LIMIT ? OFFSET ?`, orderCondition),
 		c.TaskID, c.TaskID, tempSize, offset).Scan(&list).Error
 	if err != nil {
 		e.Log.Errorf("db error: %s", err)
