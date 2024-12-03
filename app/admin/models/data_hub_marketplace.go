@@ -14,6 +14,7 @@ type AITaskShowRecordItem struct {
 	DataNumber int        `json:"data_number"`
 	User       uint       `json:"user"`
 	Status     int        `json:"status"`
+	Editor     int        `json:"editor"` // -1 nil 0 管理员 1 AI
 	Valid      int        `json:"valid"`
 	UploadTime time.Time  `json:"upload_time"`
 	Items      []FileItem `json:"items" gorm:"-"`
@@ -48,6 +49,8 @@ type AITaskUploadRecord struct {
 	Files      string               `json:"files"`
 	Issued     int                  `gorm:"default:0" json:"issued"`
 	Completed  int                  `gorm:"default:0" json:"completed"`
+	CanIssue   bool                 `gorm:"default:false" json:"can_issue"`
+	Status     int                  `gorm:"default:0" json:"status"` // -1 Subpar(单次上传全部不合格) 0 Pending Verification 1 Partially Accepted 2 All Accepted
 	CreatedAt  time.Time            `gorm:"type:timestamptz;autoCreateTime:milli;default:null" json:"created_at"`
 	Items      []AITaskUploadedFile `json:"items" gorm:"-"`
 }

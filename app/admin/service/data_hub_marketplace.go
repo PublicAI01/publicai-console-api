@@ -46,6 +46,7 @@ func (e *DataHubMarketplace) GetCampaignValidation(c *dto.DataHubMarketplaceGetC
 			cDto.Paginate(c.GetPageSize(), c.GetPageIndex()),
 			actions.Permission(data.TableName(), p),
 		)
+	fmt.Println(p.UserId)
 	tempSize := c.GetPageSize()
 	offset := (c.GetPageIndex() - 1) * tempSize
 	// 按字段排序
@@ -63,20 +64,21 @@ SELECT
     u."id",
     u.success as data_number,
     u."user",
-    CASE 
-        WHEN u.issued = 0 THEN -1
-        WHEN u.completed >= (SELECT consensus 
-    FROM ai_tasks 
-    WHERE "id" = ?) THEN 1
-        ELSE 0
-    END AS status,
+    u.status,
+    COALESCE((SELECT CASE 
+            WHEN ai_operate = TRUE THEN 1
+            WHEN ai_operate = FALSE THEN 0
+    END
+    FROM ai_task_validations WHERE upload_record = u."id"
+                ORDER BY created_at DESC
+    LIMIT 1 )  ,-1) as editor,
     (SELECT COUNT(*) 
      FROM ai_task_uploaded_files 
      WHERE upload_record = u."id" AND a_pass = TRUE) AS valid,
     u.created_at AS upload_time
 FROM 
-    ai_task_upload_records AS u WHERE u.task= ? ORDER BY %s LIMIT ? OFFSET ?`, orderCondition),
-		c.TaskID, c.TaskID, tempSize, offset).Scan(&list).Error
+    ai_task_upload_records AS u 
+WHERE u.task= ? ORDER BY %s LIMIT ? OFFSET ?`, orderCondition), c.TaskID, tempSize, offset).Scan(&list).Error
 	if err != nil {
 		e.Log.Errorf("db error: %s", err)
 		return err
@@ -86,19 +88,6 @@ FROM
 		e.Log.Errorf("db error: %s", err)
 		return err
 	}
-	//var data models.AITaskUploadRecord
-	//err = e.Orm.Debug().
-	//	Scopes(
-	//		cDto.MakeCondition(c.GetNeedSearch()),
-	//		cDto.Paginate(c.GetPageSize(), c.GetPageIndex()),
-	//		actions.Permission(data.TableName(), p),
-	//	).
-	//	Find(list).Limit(-1).Offset(-1).
-	//	Count(count).Error
-	//if err != nil {
-	//	e.Log.Errorf("db error: %s", err)
-	//	return err
-	//}
 	return nil
 }
 
@@ -130,29 +119,13 @@ func (e *DataHubMarketplace) GetCampaignReward(c *dto.DataHubMarketplaceGetPageR
 }
 
 func (e *DataHubMarketplace) Update(c *dto.MarketplaceValidationUpdateReq, p *actions.DataPermission) error {
-	//var model = models.AITaskUploadedFile{}
-	//db := e.Orm.Debug().First(&model, c.Id)
-	//if db.RowsAffected == 0 {
-	//	return errors.New("无权更新该数据")
-	//}
-	//return nil
-	//model.APass = c.APass
-	//status := -1
-	//if c.APass {
-	//	status = 0
-	//}
-	//model.Status = status
-	//db = e.Orm.Save(&model)
-	//if err := db.Error; err != nil {
-	//	e.Log.Errorf("Service UpdateSysApi error:%s", err)
-	//	return err
-	//}
 	hubUrl := fmt.Sprintf("%s/api/admin/marketplace/campaign/validation", config.ExtConfig.DataHubIp)
 	params := url.Values{}
 	params.Set("token", config.ExtConfig.Token)
 	urlWithParams := fmt.Sprintf("%s?%s", hubUrl, params.Encode())
 	postBody, _ := json.Marshal(map[string]interface{}{
 		"validations": c.Validations,
+		"uid":         p.UserId,
 	})
 	// 将数据转换为字节序列
 	requestBody := bytes.NewBuffer(postBody)
@@ -203,20 +176,21 @@ SELECT
     u."id",
     u.success as data_number,
     u."user",
-    CASE 
-        WHEN u.issued = 0 THEN -1
-        WHEN u.completed >= (SELECT consensus 
-    FROM ai_tasks 
-    WHERE "id" = ?) THEN 1
-        ELSE 0
-    END AS status,
+    u.status,
+    COALESCE((SELECT CASE 
+            WHEN ai_operate = TRUE THEN 1
+            WHEN ai_operate = FALSE THEN 0
+    END
+    FROM ai_task_validations WHERE upload_record = u."id"
+                ORDER BY created_at DESC
+    LIMIT 1 )  ,-1) as editor,
     (SELECT COUNT(*) 
      FROM ai_task_uploaded_files 
      WHERE upload_record = u."id" AND a_pass = TRUE) AS valid,
     u.created_at AS upload_time
 FROM 
-    ai_task_upload_records AS u WHERE u.task= ? and completed=2 and can_issue = false LIMIT ? OFFSET ?`,
-		c.TaskID, c.TaskID, tempSize, offset).Scan(&list).Error
+    ai_task_upload_records AS u 
+WHERE u.task= ? and completed=2 and can_issue = false LIMIT ? OFFSET ?`, c.TaskID, tempSize, offset).Scan(&list).Error
 	if err != nil {
 		e.Log.Errorf("db error: %s", err)
 		return err
