@@ -271,3 +271,34 @@ func (e DataHubMarketplace) UpdateCampaignDispute(c *gin.Context) {
 	}
 	e.OK(req.GetId(), "更新成功")
 }
+
+// UpdateCampaignValidationMalicious Update 修改或撤销validation的Malicious状态
+// @Summary 修改或撤销validation的Malicious状态
+// @Description 获取JSON
+// @Tags DataHub
+// @Accept  application/json
+// @Product application/json
+// @Param data body dto.MarketplaceValidationMaliciousUpdateReq true "body"
+// @Success 200 {object} response.Response	"{"code": 200, "message": "修改成功"}"
+// @Router /api/v1/data_hub/marketplace/campaign/validation/malicious [put]
+// @Security Bearer
+func (e DataHubMarketplace) UpdateCampaignValidationMalicious(c *gin.Context) {
+	s := service.DataHubMarketplace{}
+	req := dto.MarketplaceValidationMaliciousUpdateReq{}
+	err := e.MakeContext(c).
+		MakeOrm().
+		Bind(&req, binding.JSON, nil).
+		MakeService(&s.Service).
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		return
+	}
+	p := actions.GetPermissionFromContext(c)
+	err = s.UpdateMalicious(&req, p)
+	if err != nil {
+		e.Error(500, err, "更新失败")
+		return
+	}
+	e.OK(req.GetId(), "更新成功")
+}

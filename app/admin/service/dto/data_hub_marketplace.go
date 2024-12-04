@@ -67,3 +67,12 @@ type MarketplaceDisputeUpdateReq struct {
 func (s *MarketplaceDisputeUpdateReq) GetId() interface{} {
 	return s.Validations[0].Id
 }
+
+type MarketplaceValidationMaliciousUpdateReq struct {
+	Id   int  `json:"id"`
+	Flag bool `json:"m_flag"`
+}
+
+func (s *MarketplaceValidationMaliciousUpdateReq) GetId() interface{} {
+	return s.Id
+}
