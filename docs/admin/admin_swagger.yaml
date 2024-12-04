@@ -32,6 +32,13 @@ definitions:
           type: object
         type: array
     type: object
+  dto.MarketplaceValidationMaliciousUpdateReq:
+    properties:
+      id:
+        type: integer
+      m_flag:
+        type: boolean
+    type: object
   dto.MarketplaceValidationUpdateReq:
     properties:
       validations:
@@ -1240,6 +1247,28 @@ paths:
       security:
       - Bearer: []
       summary: 修改dispute
+      tags:
+      - DataHub
+  /api/v1/data_hub/marketplace/campaign/validation/malicious:
+    put:
+      consumes:
+      - application/json
+      description: 获取JSON
+      parameters:
+      - description: body
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/dto.MarketplaceValidationMaliciousUpdateReq'
+      responses:
+        "200":
+          description: '{"code": 200, "message": "修改成功"}'
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - Bearer: []
+      summary: 修改或撤销validation的Malicious状态
       tags:
       - DataHub
   /api/v1/data_hub/user:

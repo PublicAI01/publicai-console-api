@@ -157,7 +157,46 @@ func (e *DataHubMarketplace) Update(c *dto.MarketplaceValidationUpdateReq, p *ac
 
 	return err
 }
+func (e *DataHubMarketplace) UpdateMalicious(c *dto.MarketplaceValidationMaliciousUpdateReq, p *actions.DataPermission) error {
+	hubUrl := fmt.Sprintf("%s/api/admin/marketplace/campaign/validation/malicious", config.ExtConfig.DataHubIp)
+	params := url.Values{}
+	params.Set("token", config.ExtConfig.Token)
+	urlWithParams := fmt.Sprintf("%s?%s", hubUrl, params.Encode())
+	postBody, _ := json.Marshal(map[string]interface{}{
+		"id":     c.Id,
+		"m_flag": c.Flag,
+		"uid":    p.UserId,
+	})
+	// 将数据转换为字节序列
+	requestBody := bytes.NewBuffer(postBody)
+	req, err := http.NewRequest("PUT", urlWithParams, requestBody)
+	if err != nil {
+		return err
+	}
+	req.Header.Add("Content-Type", "application/json")
+	response, err := http.DefaultClient.Do(req)
+	defer response.Body.Close()
+	type PutResponse struct {
+		Data interface{} `json:"data"`
+		Msg  string      `json:"msg"`
+		Code int         `json:"code"`
+	}
+	var putResp PutResponse
+	if err == nil {
+		body, readErr := ioutil.ReadAll(response.Body)
+		fmt.Println(body)
+		if readErr == nil {
+			err = json.Unmarshal(body, &putResp)
+			if err == nil && putResp.Code == 200 {
+				return nil
+			}
+		} else {
+			err = readErr
+		}
+	}
 
+	return err
+}
 func (e *DataHubMarketplace) GetCampaignDispute(c *dto.DataHubMarketplaceGetCampaignDisputeReq, p *actions.DataPermission, list *[]models.AITaskShowDisputeRecordItem, count *int64) error {
 	var err error
 	var data models.AITaskUploadRecord
