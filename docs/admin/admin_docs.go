@@ -266,6 +266,42 @@ const docTemplateadmin = `{
                 }
             }
         },
+        "/api/v1/data_hub/marketplace/campaign/validation/malicious": {
+            "put": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "获取JSON",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "DataHub"
+                ],
+                "summary": "修改或撤销validation的Malicious状态",
+                "parameters": [
+                    {
+                        "description": "body",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.MarketplaceValidationMaliciousUpdateReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{\"code\": 200, \"message\": \"修改成功\"}",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/data_hub/user": {
             "get": {
                 "security": [
@@ -3258,6 +3294,17 @@ const docTemplateadmin = `{
                             }
                         }
                     }
+                }
+            }
+        },
+        "dto.MarketplaceValidationMaliciousUpdateReq": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "m_flag": {
+                    "type": "boolean"
                 }
             }
         },
