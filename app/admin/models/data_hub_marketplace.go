@@ -106,6 +106,11 @@ type AITask struct {
 	Conditions         string    `json:"conditions"` // ["email", "solana"]
 	Consensus          int       `gorm:"default:201" json:"consensus"`
 	MinValid           int       `gorm:"default:5" json:"min_valid"`
+	Available          bool      `gorm:"default:true" json:"available"`
+	USDTStake          int       `gorm:"default:0" json:"usdt_stake"`
+	PointStake         int       `gorm:"default:0" json:"point_stake"`
+	TelegramGroup      *string   `json:"telegram_group"`
+	CheckForReward     bool      `gorm:"default:false" json:"check_for_reward"`
 	CreatedAt          time.Time `gorm:"type:timestamptz;autoCreateTime:milli;default:null" json:"created_at"`
 }
 
@@ -143,4 +148,17 @@ type MarketPlaceRewardItem struct {
 	Indicators    int       `json:"indicators"`
 	USDTLink      *string   `json:"usdt_link"`
 	CreatedAt     time.Time `json:"created_at"`
+}
+
+type AITaskVariants struct {
+	ID               uint      `json:"id"`
+	Name             string    `json:"name"`
+	Start            time.Time `json:"start"`
+	End              time.Time `json:"end"`
+	UploadTimes      int       `json:"upload_times"`
+	AmountOfAll      int       `json:"amount_of_all"`
+	TotalUploadUsers int       `json:"total_upload_users"`
+	AcceptedTimes    int       `json:"accepted_times"`
+	AcceptedTotal    int       `json:"accepted_total"`
+	AcceptedUsers    int       `json:"accepted_users"`
 }

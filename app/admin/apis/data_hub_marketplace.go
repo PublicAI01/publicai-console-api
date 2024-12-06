@@ -41,17 +41,25 @@ func (e DataHubMarketplace) GetPageCampaign(c *gin.Context) {
 	//数据权限检查
 	p := actions.GetPermissionFromContext(c)
 
-	list := make([]models.AITask, 0)
+	//list := make([]models.AITask, 0)
+	//var count int64
+	//
+	//err = s.GetPageCampaign(&req, p, &list, &count)
+	//if err != nil {
+	//	e.Error(500, err, "查询失败")
+	//	return
+	//}
+	//for i, item := range list {
+	//	list[i].USDTReward = item.USDTReward / 100
+	//	list[i].PointReward = item.PointReward / 100
+	//}
+	list := make([]models.AITaskVariants, 0)
 	var count int64
 
-	err = s.GetPageCampaign(&req, p, &list, &count)
+	err = s.GetPageCampaignVariants(&req, p, &list, &count)
 	if err != nil {
 		e.Error(500, err, "查询失败")
 		return
-	}
-	for i, item := range list {
-		list[i].USDTReward = item.USDTReward / 100
-		list[i].PointReward = item.PointReward / 100
 	}
 	e.PageOK(list, int(count), req.GetPageIndex(), req.GetPageSize(), "查询成功")
 }
