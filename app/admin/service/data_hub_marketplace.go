@@ -37,6 +37,74 @@ func (e *DataHubMarketplace) GetPageCampaign(c *dto.DataHubMarketplaceGetPageCam
 	return nil
 }
 
+func (e *DataHubMarketplace) GetPageCampaignVariants(c *dto.DataHubMarketplaceGetPageCampaignReq, p *actions.DataPermission, list *[]models.AITaskVariants, count *int64) error {
+	var err error
+	var data models.AITask
+	orm := e.Orm.Debug().
+		Scopes(
+			cDto.MakeCondition(c.GetNeedSearch()),
+			cDto.Paginate(c.GetPageSize(), c.GetPageIndex()),
+			actions.Permission(data.TableName(), p),
+		)
+	tempSize := c.GetPageSize()
+	offset := (c.GetPageIndex() - 1) * tempSize
+
+	err = orm.Raw(fmt.Sprintf(`SELECT 
+    t."id",
+    t."name",
+    t."start",
+    t."end",
+    COALESCE(upload_records.upload_times, 0) AS upload_times,
+    COALESCE(upload_records.total_upload_users, 0) AS total_upload_users,
+    COALESCE(upload_files.amount_of_all, 0) AS amount_of_all,
+    COALESCE(accepted_records.accepted_times, 0) AS accepted_times,
+    COALESCE(upload_files.accepted_total, 0) AS accepted_total,
+    COALESCE(accepted_records.accepted_users, 0) AS accepted_users
+FROM ai_tasks AS t 
+LEFT JOIN (
+    SELECT 
+        "task", 
+        COUNT(*) AS upload_times,
+        COUNT(DISTINCT "user") AS total_upload_users
+    FROM 
+        ai_task_upload_records 
+    GROUP BY 
+        "task"
+) AS upload_records ON upload_records."task" = t."id"
+LEFT JOIN (
+    SELECT 
+        "task", 
+        COUNT(*) AS amount_of_all,
+				COUNT(CASE WHEN status = 1 THEN 1 END) AS accepted_total
+    FROM 
+        ai_task_uploaded_files 
+    GROUP BY 
+        "task"
+) AS upload_files ON upload_files."task" = t."id"
+LEFT JOIN (
+    SELECT 
+        "task",
+        COUNT(*) AS accepted_times,
+        COUNT(DISTINCT "user") AS accepted_users
+    FROM 
+        ai_task_upload_records 
+    WHERE 
+        status > 1
+    GROUP BY 
+        "task"
+) AS accepted_records ON accepted_records."task" = t."id" ORDER BY t."created_at" DESC LIMIT ? OFFSET ?`), tempSize, offset).Scan(&list).Error
+	if err != nil {
+		e.Log.Errorf("db error: %s", err)
+		return err
+	}
+	err = orm.Raw("SELECT COUNT(*) FROM ai_tasks").Scan(count).Error
+	if err != nil {
+		e.Log.Errorf("db error: %s", err)
+		return err
+	}
+	return nil
+}
+
 func (e *DataHubMarketplace) GetCampaignValidation(c *dto.DataHubMarketplaceGetCampaignValidationReq, p *actions.DataPermission, list *[]models.AITaskShowRecordItem, count *int64) error {
 	var err error
 	var data models.AITaskUploadRecord
@@ -46,7 +114,6 @@ func (e *DataHubMarketplace) GetCampaignValidation(c *dto.DataHubMarketplaceGetC
 			cDto.Paginate(c.GetPageSize(), c.GetPageIndex()),
 			actions.Permission(data.TableName(), p),
 		)
-	fmt.Println(p.UserId)
 	tempSize := c.GetPageSize()
 	offset := (c.GetPageIndex() - 1) * tempSize
 	// 按字段排序
