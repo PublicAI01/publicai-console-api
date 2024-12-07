@@ -348,3 +348,26 @@ func (e *DataHubMarketplace) UpdateDispute(c *dto.MarketplaceDisputeUpdateReq, p
 
 	return err
 }
+
+func (e *DataHubMarketplace) GetValidationSummary(c *dto.GetCampaignValidationSummaryReq, p *actions.DataPermission, model *models.ValidationSummary) *DataHubMarketplace {
+	var data models.ValidationSummary
+	orm := e.Orm.Model(&data).
+		Scopes(
+			actions.Permission(data.TableName(), p),
+		)
+	err := orm.Raw(`
+SELECT COUNT(*) as totoal ,
+SUM(CASE WHEN status = 2 THEN 1 ELSE 0 END) as all_accepted,
+SUM(CASE WHEN status = 1 THEN 1 ELSE 0 END) as partial_accepted,
+SUM(CASE WHEN status = 0 THEN 1 ELSE 0 END) as pending,
+SUM(CASE WHEN status = -1 THEN 1 ELSE 0 END) as subpar,
+SUM(CASE WHEN status = -2 THEN 1 ELSE 0 END) as malicious
+FROM ai_task_upload_records WHERE task=? AND created_at >= ? AND created_at <= ?;
+`, c.TaskID, c.StartTime, c.EndTime).Scan(&model).Error
+	if err != nil {
+		e.Log.Errorf("db error:%s", err)
+		_ = e.AddError(err)
+		return e
+	}
+	return e
+}

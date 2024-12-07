@@ -1271,6 +1271,32 @@ paths:
       summary: 修改或撤销validation的Malicious状态
       tags:
       - DataHub
+  /api/v1/data_hub/marketplace/campaign/validation/summary:
+    get:
+      description: 获取JSON
+      parameters:
+      - description: task_id
+        in: query
+        name: task_id
+        type: string
+      - description: start_time
+        in: query
+        name: start_time
+        type: string
+      - description: end_time
+        in: query
+        name: end_time
+        type: string
+      responses:
+        "200":
+          description: '{"code": 200, "data": [...]}'
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - Bearer: []
+      summary: 获取Campaign Validation Summary信息数据
+      tags:
+      - DataHub
   /api/v1/data_hub/user:
     get:
       description: 获取JSON

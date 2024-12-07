@@ -162,3 +162,21 @@ type AITaskVariants struct {
 	AcceptedTotal    int       `json:"accepted_total"`
 	AcceptedUsers    int       `json:"accepted_users"`
 }
+
+type ValidationSummary struct {
+	AllAccepted int `json:"all_accepted"`
+	//AllAcceptedTotal     int `json:"all_accepted_total"`
+	PartialAccepted int `json:"partial_accepted"`
+	//PartialAcceptedTotal int `json:"partial_accepted_total"`
+	Subpar int `json:"subpar"`
+	//SubparTotal          int `json:"subpar_total"`
+	Malicious int `json:"malicious"`
+	//MaliciousTotal       int `json:"malicious_total"`
+	Pending int `json:"pending"`
+	//PendingTotal         int `json:"pending_total"`
+	Total int `json:"total"`
+}
+
+func (*ValidationSummary) TableName() string {
+	return "ai_task_upload_records"
+}
