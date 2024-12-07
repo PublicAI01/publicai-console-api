@@ -356,7 +356,7 @@ func (e *DataHubMarketplace) GetValidationSummary(c *dto.GetCampaignValidationSu
 			actions.Permission(data.TableName(), p),
 		)
 	err := orm.Raw(`
-SELECT COUNT(*) as totoal ,
+SELECT COUNT(*) as total ,
 SUM(CASE WHEN status = 2 THEN 1 ELSE 0 END) as all_accepted,
 SUM(CASE WHEN status = 1 THEN 1 ELSE 0 END) as partial_accepted,
 SUM(CASE WHEN status = 0 THEN 1 ELSE 0 END) as pending,
