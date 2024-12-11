@@ -70,6 +70,8 @@ func (e DataHubMarketplace) GetPageCampaign(c *gin.Context) {
 // @Description 获取JSON
 // @Tags DataHub
 // @Param task_id query string false "task_id"
+// @Param start_time query string false "start_time"
+// @Param end_time query string false "end_time"
 // @Success 200 {object} response.Response "{"code": 200, "data": [...]}"
 // @Router /api/v1/data_hub/marketplace/campaign/validation [get]
 // @Security Bearer
@@ -92,7 +94,24 @@ func (e DataHubMarketplace) GetCampaignValidation(c *gin.Context) {
 
 	list := make([]models.AITaskShowRecordItem, 0)
 	var count int64
-
+	if req.StartTime != "" && req.EndTime != "" {
+		startTimeStamp, err := strconv.ParseInt(req.StartTime, 10, 64)
+		if err != nil {
+			e.Logger.Error(err)
+			e.Error(500, err, err.Error())
+			return
+		}
+		endTimeStamp, err := strconv.ParseInt(req.EndTime, 10, 64)
+		if err != nil {
+			e.Logger.Error(err)
+			e.Error(500, err, err.Error())
+			return
+		}
+		startTime := time.Unix(startTimeStamp, 0)
+		endTime := time.Unix(endTimeStamp, 0)
+		req.StartTime = startTime.Format("2006-01-02 15:04:05")
+		req.EndTime = endTime.Format("2006-01-02 15:04:05")
+	}
 	err = s.GetCampaignValidation(&req, p, &list, &count)
 	if err != nil {
 		e.Error(500, err, "查询失败")

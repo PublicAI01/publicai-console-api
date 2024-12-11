@@ -125,6 +125,10 @@ func (e *DataHubMarketplace) GetCampaignValidation(c *dto.DataHubMarketplaceGetC
 			orderCondition = "upload_time ASC"
 		}
 	}
+	timeCondition := ""
+	if c.StartTime != "" && c.EndTime != "" {
+		timeCondition = fmt.Sprintf("and u.created_at >='%s' and u.created_at <= '%s'", c.StartTime, c.EndTime)
+	}
 	err = orm.Raw(fmt.Sprintf(`
 SELECT 
     ROW_NUMBER() OVER() AS no,
@@ -145,12 +149,12 @@ SELECT
     u.created_at AS upload_time
 FROM 
     ai_task_upload_records AS u 
-WHERE u.task= ? ORDER BY %s LIMIT ? OFFSET ?`, orderCondition), c.TaskID, tempSize, offset).Scan(&list).Error
+WHERE u.task= ? %s ORDER BY %s LIMIT ? OFFSET ?`, timeCondition, orderCondition), c.TaskID, tempSize, offset).Scan(&list).Error
 	if err != nil {
 		e.Log.Errorf("db error: %s", err)
 		return err
 	}
-	err = orm.Raw("SELECT COUNT(*) FROM ai_task_upload_records WHERE task = ?  ", c.TaskID).Scan(count).Error
+	err = orm.Raw(fmt.Sprintf("SELECT COUNT(*) FROM ai_task_upload_records as u WHERE u.task = ?  %s", timeCondition), c.TaskID).Scan(count).Error
 	if err != nil {
 		e.Log.Errorf("db error: %s", err)
 		return err
