@@ -129,11 +129,22 @@ func (e *DataHubMarketplace) GetCampaignValidation(c *dto.DataHubMarketplaceGetC
 	if c.StartTime != "" && c.EndTime != "" {
 		timeCondition = fmt.Sprintf("and u.created_at >='%s' and u.created_at <= '%s'", c.StartTime, c.EndTime)
 	}
+	type Consensus struct {
+		Consensus int `json:"consensus"`
+	}
+	var consensus Consensus
+
+	err = orm.Raw(`SELECT consensus from ai_tasks where id =?`, c.TaskID).Scan(&consensus).Error
+	if err != nil {
+		e.Log.Errorf("db error: %s", err)
+		return err
+	}
+	findConsensus := consensus.Consensus/2 + 1
 	err = orm.Raw(fmt.Sprintf(`
 SELECT 
     ROW_NUMBER() OVER() AS no,
     u."id",
-    u.success as data_number,
+    u.total as data_number,
     u."user",
     u.status,
     COALESCE((SELECT CASE 
@@ -145,11 +156,11 @@ SELECT
     LIMIT 1 )  ,-1) as editor,
     (SELECT COUNT(*) 
      FROM ai_task_uploaded_files 
-     WHERE upload_record = u."id" AND a_pass = TRUE) AS valid,
+     WHERE upload_record = u."id" AND (v_aye >= %d OR v_nay >=%d)) AS valid,
     u.created_at AS upload_time
 FROM 
     ai_task_upload_records AS u 
-WHERE u.task= ? %s ORDER BY %s LIMIT ? OFFSET ?`, timeCondition, orderCondition), c.TaskID, tempSize, offset).Scan(&list).Error
+WHERE u.task= ? %s ORDER BY %s LIMIT ? OFFSET ?`, findConsensus, findConsensus, timeCondition, orderCondition), c.TaskID, tempSize, offset).Scan(&list).Error
 	if err != nil {
 		e.Log.Errorf("db error: %s", err)
 		return err
@@ -279,12 +290,24 @@ func (e *DataHubMarketplace) GetCampaignDispute(c *dto.DataHubMarketplaceGetCamp
 		)
 	tempSize := c.GetPageSize()
 	offset := (c.GetPageIndex() - 1) * tempSize
+	type Consensus struct {
+		Consensus int `json:"consensus"`
+	}
+	var consensus Consensus
+
+	err = orm.Raw(`SELECT consensus from ai_tasks where id =?`, c.TaskID).Scan(&consensus).Error
+	if err != nil {
+		e.Log.Errorf("db error: %s", err)
+		return err
+	}
+	findConsensus := consensus.Consensus/2 + 1
+	needAm := consensus.Consensus / 2 / 5
 	// TODO:check completed
-	err = orm.Raw(`
+	err = orm.Raw(fmt.Sprintf(`
 SELECT 
     ROW_NUMBER() OVER() AS no,
     u."id",
-    u.success as data_number,
+    u.total as data_number,
     u."user",
     u.status,
     COALESCE((SELECT CASE 
@@ -296,16 +319,16 @@ SELECT
     LIMIT 1 )  ,-1) as editor,
     (SELECT COUNT(*) 
      FROM ai_task_uploaded_files 
-     WHERE upload_record = u."id" AND a_pass = TRUE) AS valid,
+     WHERE upload_record = u."id" AND (v_aye >= %d OR v_nay >=%d)) AS valid,
     u.created_at AS upload_time
 FROM 
     ai_task_upload_records AS u 
-WHERE u.task= ? and completed=2 and can_issue = false LIMIT ? OFFSET ?`, c.TaskID, tempSize, offset).Scan(&list).Error
+WHERE u.task= ? and completed=? and can_issue = false LIMIT ? OFFSET ?`, findConsensus, findConsensus), c.TaskID, needAm, tempSize, offset).Scan(&list).Error
 	if err != nil {
 		e.Log.Errorf("db error: %s", err)
 		return err
 	}
-	err = orm.Raw("SELECT COUNT(*) FROM ai_task_upload_records WHERE task = ?  and completed=2 and can_issue = false  ", c.TaskID).Scan(count).Error
+	err = orm.Raw("SELECT COUNT(*) FROM ai_task_upload_records WHERE task = ?  and completed=? and can_issue = false  ", c.TaskID, needAm).Scan(count).Error
 	if err != nil {
 		e.Log.Errorf("db error: %s", err)
 		return err
