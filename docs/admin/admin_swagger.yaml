@@ -1179,6 +1179,14 @@ paths:
         in: query
         name: task_id
         type: string
+      - description: start_time
+        in: query
+        name: start_time
+        type: string
+      - description: end_time
+        in: query
+        name: end_time
+        type: string
       responses:
         "200":
           description: '{"code": 200, "data": [...]}'
