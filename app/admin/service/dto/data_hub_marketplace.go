@@ -15,7 +15,9 @@ func (m *DataHubMarketplaceGetPageCampaignReq) GetNeedSearch() interface{} {
 
 type DataHubMarketplaceGetCampaignValidationReq struct {
 	dto.Pagination `search:"-"`
-	TaskID         int `form:"task_id" search:"type:exact;column:task;table:ai_task_upload_records"`
+	TaskID         int    `form:"task_id" search:"type:exact;column:task;table:ai_task_upload_records"`
+	StartTime      string `form:"start_time" search:"type:gte;column:created_at;table:ai_task_upload_records"`
+	EndTime        string `form:"end_time" search:"type:lte;column:created_at;table:ai_task_upload_records"`
 	GetCampaignValidationOrder
 }
 
