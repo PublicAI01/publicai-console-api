@@ -34,13 +34,13 @@ func (e *DataHubUser) GetPageUser(c *dto.DataHubUserGetPageReq, p *actions.DataP
 	if c.Email != "" || c.TwitterName != "" || c.TelegramName != "" || c.SolanaAccount != "" || c.ID != 0 || c.UserName != "" {
 		whereCondition += "WHERE "
 		if c.Email != "" {
-			whereCondition += "email= '" + fmt.Sprintf("%s", c.Email) + "' AND "
+			whereCondition += "email ILIKE '" + fmt.Sprintf("%s", c.Email) + "' AND "
 		}
 		if c.TwitterName != "" {
-			whereCondition += "twitter_name= '" + fmt.Sprintf("%s", c.TwitterName) + "' AND "
+			whereCondition += "twitter_name ILIKE '" + fmt.Sprintf("%s", c.TwitterName) + "' AND "
 		}
 		if c.TelegramName != "" {
-			whereCondition += "telegram_name='" + fmt.Sprintf("%s", c.TelegramName) + "' AND "
+			whereCondition += "telegram_name ILIKE '" + fmt.Sprintf("%s", c.TelegramName) + "' AND "
 		}
 		if c.SolanaAccount != "" {
 			whereCondition += "wallet= '" + fmt.Sprintf("%s", c.SolanaAccount) + "' AND "
@@ -49,7 +49,7 @@ func (e *DataHubUser) GetPageUser(c *dto.DataHubUserGetPageReq, p *actions.DataP
 			whereCondition += "u.id= " + fmt.Sprintf("%d", c.ID) + " AND "
 		}
 		if c.UserName != "" {
-			whereCondition += "name= '" + fmt.Sprintf("%s", c.UserName) + "' AND "
+			whereCondition += "name ILIKE '" + fmt.Sprintf("%s", c.UserName) + "' AND "
 		}
 		whereCondition += "1=1"
 	}
