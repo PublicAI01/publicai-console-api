@@ -1187,6 +1187,10 @@ paths:
         in: query
         name: end_time
         type: string
+      - description: uid
+        in: query
+        name: uid
+        type: string
       responses:
         "200":
           description: '{"code": 200, "data": [...]}'
@@ -1225,6 +1229,10 @@ paths:
       - description: task_id
         in: query
         name: task_id
+        type: string
+      - description: uid
+        in: query
+        name: uid
         type: string
       responses:
         "200":
@@ -1294,6 +1302,10 @@ paths:
       - description: end_time
         in: query
         name: end_time
+        type: string
+      - description: uid
+        in: query
+        name: uid
         type: string
       responses:
         "200":

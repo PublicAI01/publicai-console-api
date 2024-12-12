@@ -18,6 +18,7 @@ type DataHubMarketplaceGetCampaignValidationReq struct {
 	TaskID         int    `form:"task_id" search:"type:exact;column:task;table:ai_task_upload_records"`
 	StartTime      string `form:"start_time" search:"type:gte;column:created_at;table:ai_task_upload_records"`
 	EndTime        string `form:"end_time" search:"type:lte;column:created_at;table:ai_task_upload_records"`
+	UID            int    `form:"uid" search:"type:exact;column:user;table:ai_task_upload_records"`
 	GetCampaignValidationOrder
 }
 
@@ -52,6 +53,7 @@ func (s *MarketplaceValidationUpdateReq) GetId() interface{} {
 type DataHubMarketplaceGetCampaignDisputeReq struct {
 	dto.Pagination `search:"-"`
 	TaskID         int `form:"task_id" search:"type:exact;column:task;table:ai_task_upload_records"`
+	UID            int `form:"uid" search:"type:exact;column:user;table:ai_task_upload_records"`
 }
 
 func (m *DataHubMarketplaceGetCampaignDisputeReq) GetNeedSearch() interface{} {
@@ -83,4 +85,5 @@ type GetCampaignValidationSummaryReq struct {
 	TaskID    int    `form:"task_id" search:"type:exact;column:task;table:ai_task_upload_records"`
 	StartTime string `form:"start_time" search:"type:gte;column:created_at;table:ai_task_upload_records"`
 	EndTime   string `form:"end_time" search:"type:lte;column:created_at;table:ai_task_upload_records"`
+	UID       int    `form:"uid" search:"type:exact;column:user;table:ai_task_upload_records"`
 }
