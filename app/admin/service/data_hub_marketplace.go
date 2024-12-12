@@ -129,6 +129,10 @@ func (e *DataHubMarketplace) GetCampaignValidation(c *dto.DataHubMarketplaceGetC
 	if c.StartTime != "" && c.EndTime != "" {
 		timeCondition = fmt.Sprintf("and u.created_at >='%s' and u.created_at <= '%s'", c.StartTime, c.EndTime)
 	}
+	userCondition := ""
+	if c.UID != 0 {
+		userCondition = fmt.Sprintf("and \"user\"=%d", c.UID)
+	}
 	type Consensus struct {
 		Consensus int `json:"consensus"`
 	}
@@ -160,12 +164,12 @@ SELECT
     u.created_at AS upload_time
 FROM 
     ai_task_upload_records AS u 
-WHERE u.task= ? %s ORDER BY %s LIMIT ? OFFSET ?`, findConsensus, findConsensus, timeCondition, orderCondition), c.TaskID, tempSize, offset).Scan(&list).Error
+WHERE u.task= ? %s %s ORDER BY %s LIMIT ? OFFSET ?`, findConsensus, findConsensus, userCondition, timeCondition, orderCondition), c.TaskID, tempSize, offset).Scan(&list).Error
 	if err != nil {
 		e.Log.Errorf("db error: %s", err)
 		return err
 	}
-	err = orm.Raw(fmt.Sprintf("SELECT COUNT(*) FROM ai_task_upload_records as u WHERE u.task = ?  %s", timeCondition), c.TaskID).Scan(count).Error
+	err = orm.Raw(fmt.Sprintf("SELECT COUNT(*) FROM ai_task_upload_records as u WHERE u.task = ?  %s %s", timeCondition, userCondition), c.TaskID).Scan(count).Error
 	if err != nil {
 		e.Log.Errorf("db error: %s", err)
 		return err
@@ -300,6 +304,10 @@ func (e *DataHubMarketplace) GetCampaignDispute(c *dto.DataHubMarketplaceGetCamp
 		e.Log.Errorf("db error: %s", err)
 		return err
 	}
+	userCondition := ""
+	if c.UID != 0 {
+		userCondition = fmt.Sprintf("and \"user\"=%d", c.UID)
+	}
 	findConsensus := consensus.Consensus/2 + 1
 	needAm := consensus.Consensus / 2 / 5
 	// TODO:check completed
@@ -323,12 +331,12 @@ SELECT
     u.created_at AS upload_time
 FROM 
     ai_task_upload_records AS u 
-WHERE u.task= ? and completed=? and can_issue = false LIMIT ? OFFSET ?`, findConsensus, findConsensus), c.TaskID, needAm, tempSize, offset).Scan(&list).Error
+WHERE u.task= ? and completed=? and can_issue = false %s LIMIT ? OFFSET ?`, findConsensus, findConsensus, userCondition), c.TaskID, needAm, tempSize, offset).Scan(&list).Error
 	if err != nil {
 		e.Log.Errorf("db error: %s", err)
 		return err
 	}
-	err = orm.Raw("SELECT COUNT(*) FROM ai_task_upload_records WHERE task = ?  and completed=? and can_issue = false  ", c.TaskID, needAm).Scan(count).Error
+	err = orm.Raw(fmt.Sprintf("SELECT COUNT(*) FROM ai_task_upload_records WHERE task = ?  and completed=? and can_issue = false  %s", userCondition), c.TaskID, needAm).Scan(count).Error
 	if err != nil {
 		e.Log.Errorf("db error: %s", err)
 		return err
@@ -382,15 +390,19 @@ func (e *DataHubMarketplace) GetValidationSummary(c *dto.GetCampaignValidationSu
 		Scopes(
 			actions.Permission(data.TableName(), p),
 		)
-	err := orm.Raw(`
+	userCondition := ""
+	if c.UID != 0 {
+		userCondition = fmt.Sprintf("and \"user\"=%d", c.UID)
+	}
+	err := orm.Raw(fmt.Sprintf(`
 SELECT COUNT(*) as total ,
 SUM(CASE WHEN status = 2 THEN 1 ELSE 0 END) as all_accepted,
 SUM(CASE WHEN status = 1 THEN 1 ELSE 0 END) as partial_accepted,
 SUM(CASE WHEN status = 0 THEN 1 ELSE 0 END) as pending,
 SUM(CASE WHEN status = -1 THEN 1 ELSE 0 END) as subpar,
 SUM(CASE WHEN status = -2 THEN 1 ELSE 0 END) as malicious
-FROM ai_task_upload_records WHERE task=? AND created_at >= ? AND created_at <= ?;
-`, c.TaskID, c.StartTime, c.EndTime).Scan(&model).Error
+FROM ai_task_upload_records WHERE task=? AND created_at >= ? AND created_at <= ? %s;
+`, userCondition), c.TaskID, c.StartTime, c.EndTime).Scan(&model).Error
 	if err != nil {
 		e.Log.Errorf("db error:%s", err)
 		_ = e.AddError(err)

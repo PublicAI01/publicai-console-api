@@ -168,6 +168,12 @@ const docTemplateadmin = `{
                         "description": "end_time",
                         "name": "end_time",
                         "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "uid",
+                        "name": "uid",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -231,6 +237,12 @@ const docTemplateadmin = `{
                         "type": "string",
                         "description": "task_id",
                         "name": "task_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "uid",
+                        "name": "uid",
                         "in": "query"
                     }
                 ],
@@ -343,6 +355,12 @@ const docTemplateadmin = `{
                         "type": "string",
                         "description": "end_time",
                         "name": "end_time",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "uid",
+                        "name": "uid",
                         "in": "query"
                     }
                 ],

@@ -72,6 +72,7 @@ func (e DataHubMarketplace) GetPageCampaign(c *gin.Context) {
 // @Param task_id query string false "task_id"
 // @Param start_time query string false "start_time"
 // @Param end_time query string false "end_time"
+// @Param uid query string false "uid"
 // @Success 200 {object} response.Response "{"code": 200, "data": [...]}"
 // @Router /api/v1/data_hub/marketplace/campaign/validation [get]
 // @Security Bearer
@@ -223,6 +224,7 @@ func (e DataHubMarketplace) UpdateCampaignValidation(c *gin.Context) {
 // @Description 获取JSON
 // @Tags DataHub
 // @Param task_id query string false "task_id"
+// @Param uid query string false "uid"
 // @Success 200 {object} response.Response "{"code": 200, "data": [...]}"
 // @Router /api/v1/data_hub/marketplace/campaign/validation/dispute [get]
 // @Security Bearer
@@ -338,6 +340,7 @@ func (e DataHubMarketplace) UpdateCampaignValidationMalicious(c *gin.Context) {
 // @Param task_id query string false "task_id"
 // @Param start_time query string false "start_time"
 // @Param end_time query string false "end_time"
+// @Param uid query string false "uid"
 // @Success 200 {object} response.Response "{"code": 200, "data": [...]}"
 // @Router /api/v1/data_hub/marketplace/campaign/validation/summary [get]
 // @Security Bearer
