@@ -410,3 +410,59 @@ FROM ai_task_upload_records WHERE task=? AND created_at >= ? AND created_at <= ?
 	}
 	return e
 }
+
+func (e *DataHubMarketplace) DownloadValidation(c *dto.GetCampaignValidationSummaryReq, p *actions.DataPermission, list *[]models.AITaskShowRecordItem) error {
+	var err error
+	var data models.AITaskUploadRecord
+	orm := e.Orm.Debug().
+		Scopes(
+			actions.Permission(data.TableName(), p),
+		)
+	// 按字段排序
+	orderCondition := "upload_time ASC"
+	timeCondition := ""
+	if c.StartTime != "" && c.EndTime != "" {
+		timeCondition = fmt.Sprintf("and u.created_at >='%s' and u.created_at <= '%s'", c.StartTime, c.EndTime)
+	}
+	userCondition := ""
+	if c.UID != 0 {
+		userCondition = fmt.Sprintf("and \"user\"=%d", c.UID)
+	}
+	type Consensus struct {
+		Consensus int `json:"consensus"`
+	}
+	var consensus Consensus
+
+	err = orm.Raw(`SELECT consensus from ai_tasks where id =?`, c.TaskID).Scan(&consensus).Error
+	if err != nil {
+		e.Log.Errorf("db error: %s", err)
+		return err
+	}
+	findConsensus := consensus.Consensus/2 + 1
+	err = orm.Raw(fmt.Sprintf(`
+SELECT 
+    ROW_NUMBER() OVER() AS no,
+    u."id",
+    u.total as data_number,
+    u."user",
+    u.status,
+    COALESCE((SELECT CASE 
+            WHEN ai_operate = TRUE THEN 1
+            WHEN ai_operate = FALSE THEN 0
+    END
+    FROM ai_task_validations WHERE upload_record = u."id"
+                ORDER BY created_at DESC
+    LIMIT 1 )  ,-1) as editor,
+    (SELECT COUNT(*) 
+     FROM ai_task_uploaded_files 
+     WHERE upload_record = u."id" AND (v_aye >= %d OR v_nay >=%d)) AS valid,
+    u.created_at AS upload_time
+FROM 
+    ai_task_upload_records AS u 
+WHERE u.task= ? %s %s ORDER BY %s`, findConsensus, findConsensus, userCondition, timeCondition, orderCondition), c.TaskID).Scan(&list).Error
+	if err != nil {
+		e.Log.Errorf("db error: %s", err)
+		return err
+	}
+	return nil
+}
