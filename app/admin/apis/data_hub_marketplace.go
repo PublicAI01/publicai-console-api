@@ -384,3 +384,69 @@ func (e DataHubMarketplace) GetCampaignValidationSummary(c *gin.Context) {
 	}
 	e.OK(object, "查询成功")
 }
+
+// GetCampaignValidationDownload Get
+// @Summary 获取待下载的图片信息
+// @Description 获取JSON
+// @Tags DataHub
+// @Param task_id query string false "task_id"
+// @Param start_time query string false "start_time"
+// @Param end_time query string false "end_time"
+// @Param uid query string false "uid"
+// @Success 200 {object} response.Response "{"code": 200, "data": [...]}"
+// @Router /api/v1/data_hub/marketplace/campaign/validation/download [get]
+// @Security Bearer
+func (e DataHubMarketplace) GetCampaignValidationDownload(c *gin.Context) {
+	s := service.DataHubMarketplace{}
+	req := dto.GetCampaignValidationSummaryReq{}
+	err := e.MakeContext(c).
+		MakeOrm().
+		Bind(&req).
+		MakeService(&s.Service).
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+
+	//数据权限检查
+	p := actions.GetPermissionFromContext(c)
+	startTimeStamp, err := strconv.ParseInt(req.StartTime, 10, 64)
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+	endTimeStamp, err := strconv.ParseInt(req.EndTime, 10, 64)
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+	startTime := time.Unix(startTimeStamp, 0)
+	endTime := time.Unix(endTimeStamp, 0)
+	req.StartTime = startTime.Format("2006-01-02 15:04:05")
+	req.EndTime = endTime.Format("2006-01-02 15:04:05")
+	list := make([]models.AITaskShowRecordItem, 0)
+	err = s.DownloadValidation(&req, p, &list)
+	if err != nil {
+		e.Error(500, err, "查询失败")
+		return
+	}
+	for i, item := range list {
+		var files []models.AITaskUploadedFile
+		e.Orm.Find(&files, "upload_record = ?", item.ID)
+		fileItems := make([]models.FileItem, len(files))
+		for j, file := range files {
+			fileItems[j] = models.FileItem{
+				ID:    int(file.ID),
+				Link:  file.Link,
+				VPass: file.VPass,
+				APass: file.APass,
+			}
+		}
+		list[i].Items = fileItems
+	}
+	e.OK(list, "查询成功")
+}
