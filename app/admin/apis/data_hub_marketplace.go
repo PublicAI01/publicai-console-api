@@ -73,6 +73,7 @@ func (e DataHubMarketplace) GetPageCampaign(c *gin.Context) {
 // @Param start_time query string false "start_time"
 // @Param end_time query string false "end_time"
 // @Param uid query string false "uid"
+// @Param status query string false "status"
 // @Success 200 {object} response.Response "{"code": 200, "data": [...]}"
 // @Router /api/v1/data_hub/marketplace/campaign/validation [get]
 // @Security Bearer
@@ -393,6 +394,7 @@ func (e DataHubMarketplace) GetCampaignValidationSummary(c *gin.Context) {
 // @Param start_time query string false "start_time"
 // @Param end_time query string false "end_time"
 // @Param uid query string false "uid"
+// @Param status query string false "status"
 // @Success 200 {object} response.Response "{"code": 200, "data": [...]}"
 // @Router /api/v1/data_hub/marketplace/campaign/validation/download [get]
 // @Security Bearer
