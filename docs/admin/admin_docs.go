@@ -422,6 +422,12 @@ const docTemplateadmin = `{
                         "description": "uid",
                         "name": "uid",
                         "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "status",
+                        "name": "status",
+                        "in": "query"
                     }
                 ],
                 "responses": {

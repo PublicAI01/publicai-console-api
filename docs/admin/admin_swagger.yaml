@@ -1345,6 +1345,10 @@ paths:
         in: query
         name: uid
         type: string
+      - description: status
+        in: query
+        name: status
+        type: string
       responses:
         "200":
           description: '{"code": 200, "data": [...]}'
