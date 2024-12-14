@@ -134,8 +134,8 @@ func (e *DataHubMarketplace) GetCampaignValidation(c *dto.DataHubMarketplaceGetC
 		userCondition = fmt.Sprintf("and \"user\"=%d", c.UID)
 	}
 	statusCondition := ""
-	if c.UID != 0 {
-		statusCondition = fmt.Sprintf("and status=%d", c.Status)
+	if c.Status != "" {
+		statusCondition = fmt.Sprintf("and status=%s", c.Status)
 	}
 	type Consensus struct {
 		Consensus int `json:"consensus"`
@@ -399,8 +399,8 @@ func (e *DataHubMarketplace) GetValidationSummary(c *dto.GetCampaignValidationSu
 		userCondition = fmt.Sprintf("and \"user\"=%d", c.UID)
 	}
 	statusCondition := ""
-	if c.UID != 0 {
-		statusCondition = fmt.Sprintf("and status=%d", c.Status)
+	if c.Status != "" {
+		statusCondition = fmt.Sprintf("and status=%s", c.Status)
 	}
 	err := orm.Raw(fmt.Sprintf(`
 SELECT COUNT(*) as total ,
@@ -437,8 +437,8 @@ func (e *DataHubMarketplace) DownloadValidation(c *dto.GetCampaignValidationSumm
 		userCondition = fmt.Sprintf("and \"user\"=%d", c.UID)
 	}
 	statusCondition := ""
-	if c.UID != 0 {
-		statusCondition = fmt.Sprintf("and status=%d", c.Status)
+	if c.Status != "" {
+		statusCondition = fmt.Sprintf("and status=%s", c.Status)
 	}
 	type Consensus struct {
 		Consensus int `json:"consensus"`
