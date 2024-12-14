@@ -133,6 +133,10 @@ func (e *DataHubMarketplace) GetCampaignValidation(c *dto.DataHubMarketplaceGetC
 	if c.UID != 0 {
 		userCondition = fmt.Sprintf("and \"user\"=%d", c.UID)
 	}
+	statusCondition := ""
+	if c.UID != 0 {
+		statusCondition = fmt.Sprintf("and status=%d", c.Status)
+	}
 	type Consensus struct {
 		Consensus int `json:"consensus"`
 	}
@@ -164,12 +168,12 @@ SELECT
     u.created_at AS upload_time
 FROM 
     ai_task_upload_records AS u 
-WHERE u.task= ? %s %s ORDER BY %s LIMIT ? OFFSET ?`, findConsensus, findConsensus, userCondition, timeCondition, orderCondition), c.TaskID, tempSize, offset).Scan(&list).Error
+WHERE u.task= ? %s %s %s ORDER BY %s LIMIT ? OFFSET ?`, findConsensus, findConsensus, userCondition, timeCondition, statusCondition, orderCondition), c.TaskID, tempSize, offset).Scan(&list).Error
 	if err != nil {
 		e.Log.Errorf("db error: %s", err)
 		return err
 	}
-	err = orm.Raw(fmt.Sprintf("SELECT COUNT(*) FROM ai_task_upload_records as u WHERE u.task = ?  %s %s", timeCondition, userCondition), c.TaskID).Scan(count).Error
+	err = orm.Raw(fmt.Sprintf("SELECT COUNT(*) FROM ai_task_upload_records as u WHERE u.task = ?  %s %s %s", timeCondition, userCondition, statusCondition), c.TaskID).Scan(count).Error
 	if err != nil {
 		e.Log.Errorf("db error: %s", err)
 		return err
@@ -428,6 +432,10 @@ func (e *DataHubMarketplace) DownloadValidation(c *dto.GetCampaignValidationSumm
 	if c.UID != 0 {
 		userCondition = fmt.Sprintf("and \"user\"=%d", c.UID)
 	}
+	statusCondition := ""
+	if c.UID != 0 {
+		statusCondition = fmt.Sprintf("and status=%d", c.Status)
+	}
 	type Consensus struct {
 		Consensus int `json:"consensus"`
 	}
@@ -459,7 +467,7 @@ SELECT
     u.created_at AS upload_time
 FROM 
     ai_task_upload_records AS u 
-WHERE u.task= ? %s %s ORDER BY %s`, findConsensus, findConsensus, userCondition, timeCondition, orderCondition), c.TaskID).Scan(&list).Error
+WHERE u.task= ? %s %s %s ORDER BY %s`, findConsensus, findConsensus, userCondition, timeCondition, statusCondition, orderCondition), c.TaskID).Scan(&list).Error
 	if err != nil {
 		e.Log.Errorf("db error: %s", err)
 		return err
