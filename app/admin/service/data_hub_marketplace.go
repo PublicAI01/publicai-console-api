@@ -398,6 +398,10 @@ func (e *DataHubMarketplace) GetValidationSummary(c *dto.GetCampaignValidationSu
 	if c.UID != 0 {
 		userCondition = fmt.Sprintf("and \"user\"=%d", c.UID)
 	}
+	statusCondition := ""
+	if c.UID != 0 {
+		statusCondition = fmt.Sprintf("and status=%d", c.Status)
+	}
 	err := orm.Raw(fmt.Sprintf(`
 SELECT COUNT(*) as total ,
 SUM(CASE WHEN status = 2 THEN 1 ELSE 0 END) as all_accepted,
@@ -405,8 +409,8 @@ SUM(CASE WHEN status = 1 THEN 1 ELSE 0 END) as partial_accepted,
 SUM(CASE WHEN status = 0 THEN 1 ELSE 0 END) as pending,
 SUM(CASE WHEN status = -1 THEN 1 ELSE 0 END) as subpar,
 SUM(CASE WHEN status = -2 THEN 1 ELSE 0 END) as malicious
-FROM ai_task_upload_records WHERE task=? AND created_at >= ? AND created_at <= ? %s;
-`, userCondition), c.TaskID, c.StartTime, c.EndTime).Scan(&model).Error
+FROM ai_task_upload_records WHERE task=? AND created_at >= ? AND created_at <= ? %s %s;
+`, userCondition, statusCondition), c.TaskID, c.StartTime, c.EndTime).Scan(&model).Error
 	if err != nil {
 		e.Log.Errorf("db error:%s", err)
 		_ = e.AddError(err)
