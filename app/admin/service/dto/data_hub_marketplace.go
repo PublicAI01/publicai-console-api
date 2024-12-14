@@ -19,6 +19,7 @@ type DataHubMarketplaceGetCampaignValidationReq struct {
 	StartTime      string `form:"start_time" search:"type:gte;column:created_at;table:ai_task_upload_records"`
 	EndTime        string `form:"end_time" search:"type:lte;column:created_at;table:ai_task_upload_records"`
 	UID            int    `form:"uid" search:"type:exact;column:user;table:ai_task_upload_records"`
+	Status         int    `form:"status" search:"type:exact;column:status;table:ai_task_upload_records"`
 	GetCampaignValidationOrder
 }
 
@@ -86,4 +87,5 @@ type GetCampaignValidationSummaryReq struct {
 	StartTime string `form:"start_time" search:"type:gte;column:created_at;table:ai_task_upload_records"`
 	EndTime   string `form:"end_time" search:"type:lte;column:created_at;table:ai_task_upload_records"`
 	UID       int    `form:"uid" search:"type:exact;column:user;table:ai_task_upload_records"`
+	Status    int    `form:"status" search:"type:exact;column:status;table:ai_task_upload_records"`
 }
