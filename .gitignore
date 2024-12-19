@@ -21,3 +21,4 @@ go-admin-db.db
 # go sum
 go.sum
 config/settings.deva.yml
+temp-file
