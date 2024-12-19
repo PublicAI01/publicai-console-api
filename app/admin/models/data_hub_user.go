@@ -115,7 +115,7 @@ type RewardItem struct {
 
 type AllRewardItem struct {
 	User  uint `json:"user"`
-	Point uint `json:"point"`
+	Point int  `json:"point"`
 }
 
 type DataHubAmbassador struct {
