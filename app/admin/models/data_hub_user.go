@@ -109,13 +109,13 @@ func (*TrainReward) TableName() string {
 type RewardItem struct {
 	ID        int       `json:"id"`
 	User      uint      `json:"user"`
-	Point     uint      `json:"point"`
+	Point     int       `json:"point"`
 	CreatedAt time.Time `json:"created_at"`
 }
 
 type AllRewardItem struct {
 	User  uint `json:"user"`
-	Point uint `json:"point"`
+	Point int  `json:"point"`
 }
 
 type DataHubAmbassador struct {
