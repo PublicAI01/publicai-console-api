@@ -141,36 +141,103 @@ func (e *DataHubUser) GetPageUserPoint(c *dto.DataHubUserPointGetPageReq, p *act
 		)
 	tempSize := c.GetPageSize()
 	offset := (c.GetPageIndex() - 1) * tempSize
+	orderCondition := "created_at ASC"
 	if c.UID == 0 {
-		err = orm.Raw("SELECT id, \"user\",point, created_at FROM \"train_rewards\" WHERE train_rewards.created_at >= ? "+
-			"AND train_rewards.created_at <= ? LIMIT ? OFFSET ?",
-			c.StartTime, c.EndTime, tempSize, offset).Scan(list).Error
+		//err = orm.Raw("SELECT id, \"user\",point, created_at FROM \"train_rewards\" WHERE train_rewards.created_at >= ? "+
+		//	"AND train_rewards.created_at <= ? LIMIT ? OFFSET ?",
+		//	c.StartTime, c.EndTime, tempSize, offset).Scan(list).Error
+		err = orm.Raw(fmt.Sprintf(`
+SELECT "user",  point, created_at FROM train_rewards WHERE point != 0 AND created_at >= ? AND created_at <= ?
+UNION ALL SELECT "user", point_reward as point, created_at FROM ai_task_rewards WHERE point_reward != 0 AND created_at >= ? AND created_at <= ?
+UNION ALL SELECT B."user",A.point, A.created_at FROM tma_rewards as A INNER JOIN (SELECT tma_users."id" as "id",users."id" as "user" FROM tma_users  
+INNER JOIN users ON tma_users.telegram_id=users.telegram_id) as B ON A.tma_id=B."id"  
+WHERE A.point != 0 AND created_at >= ? AND created_at <= ? ORDER BY %s LIMIT ? OFFSET ?
+`, orderCondition),
+			c.StartTime, c.EndTime,
+			c.StartTime, c.EndTime,
+			c.StartTime, c.EndTime,
+			tempSize, offset).Scan(list).Error
 	} else {
-		err = orm.Raw("SELECT id, \"user\",point, created_at FROM \"train_rewards\" WHERE train_rewards.user = ? AND train_rewards.created_at >= ? "+
-			"AND train_rewards.created_at <= ? LIMIT ? OFFSET ?",
-			c.UID, c.StartTime, c.EndTime, tempSize, offset).Scan(list).Error
+		//err = orm.Raw("SELECT id, \"user\",point, created_at FROM \"train_rewards\" WHERE train_rewards.user = ? AND train_rewards.created_at >= ? "+
+		//	"AND train_rewards.created_at <= ? LIMIT ? OFFSET ?",
+		//	c.UID, c.StartTime, c.EndTime, tempSize, offset).Scan(list).Error
+		err = orm.Raw(fmt.Sprintf(`
+SELECT "user",  point, created_at FROM train_rewards WHERE point != 0 AND created_at >= ? AND created_at <= ? AND "user"=?
+UNION ALL SELECT "user", point_reward as point, created_at FROM ai_task_rewards WHERE point_reward != 0 AND created_at >= ? AND created_at <= ?  AND "user"=?
+UNION ALL SELECT B."user",A.point, A.created_at FROM tma_rewards as A INNER JOIN (SELECT tma_users."id" as "id",users."id" as "user" FROM tma_users  
+INNER JOIN users ON tma_users.telegram_id=users.telegram_id AND users."id"=?) as B ON A.tma_id=B."id"  
+WHERE A.point != 0 AND created_at >= ? AND created_at <= ? ORDER BY %s LIMIT ? OFFSET ?
+`, orderCondition),
+			c.StartTime, c.EndTime, c.UID,
+			c.StartTime, c.EndTime, c.UID,
+			c.UID, c.StartTime, c.EndTime,
+			tempSize, offset).Scan(list).Error
 	}
 	if err != nil {
 		e.Log.Errorf("db error: %s", err)
 		return err
 	}
 	if c.UID == 0 {
-		err = orm.Raw("SELECT COUNT(*) FROM \"train_rewards\" WHERE train_rewards.created_at >= ? "+
-			"AND train_rewards.created_at <= ?", c.StartTime, c.EndTime).Scan(count).Error
+		//err = orm.Raw("SELECT COUNT(*) FROM \"train_rewards\" WHERE train_rewards.created_at >= ? "+
+		//	"AND train_rewards.created_at <= ?", c.StartTime, c.EndTime).Scan(count).Error
+		err = orm.Raw(`
+SELECT 
+    COUNT(*) AS total_rows 
+FROM (
+SELECT "user",  point, created_at FROM train_rewards WHERE point != 0 AND created_at >= ? AND created_at <= ?
+UNION ALL SELECT "user", point_reward as point, created_at FROM ai_task_rewards WHERE point_reward != 0 AND created_at >= ? AND created_at <= ?
+UNION ALL SELECT B."user",A.point, A.created_at FROM tma_rewards as A INNER JOIN (SELECT tma_users."id" as "id",users."id" as "user" FROM tma_users  
+INNER JOIN users ON tma_users.telegram_id=users.telegram_id) as B ON A.tma_id=B."id"  
+WHERE A.point != 0 AND created_at >= ? AND created_at <= ?) AS grouped_users;
+`,
+			c.StartTime, c.EndTime,
+			c.StartTime, c.EndTime,
+			c.StartTime, c.EndTime).Scan(count).Error
 	} else {
-		err = orm.Raw("SELECT COUNT(*) FROM \"train_rewards\" WHERE train_rewards.user = ? AND train_rewards.created_at >= ? "+
-			"AND train_rewards.created_at <= ?", c.UID, c.StartTime, c.EndTime).Scan(count).Error
+		//err = orm.Raw("SELECT COUNT(*) FROM \"train_rewards\" WHERE train_rewards.user = ? AND train_rewards.created_at >= ? "+
+		//	"AND train_rewards.created_at <= ?", c.UID, c.StartTime, c.EndTime).Scan(count).Error
+		err = orm.Raw(`
+SELECT 
+    COUNT(*) AS total_rows 
+FROM (
+SELECT "user",  point, created_at FROM train_rewards WHERE point != 0 AND created_at >= ? AND created_at <= ? AND "user"=?
+UNION ALL SELECT "user", point_reward as point, created_at FROM ai_task_rewards WHERE point_reward != 0 AND created_at >= ? AND created_at <= ? AND "user"=?
+UNION ALL SELECT B."user",A.point, A.created_at FROM tma_rewards as A INNER JOIN (SELECT tma_users."id" as "id",users."id" as "user" FROM tma_users  
+INNER JOIN users ON tma_users.telegram_id=users.telegram_id AND users."id"=?) as B ON A.tma_id=B."id"  
+WHERE A.point != 0 AND created_at >= ? AND created_at <= ?) AS grouped_users;
+`,
+			c.StartTime, c.EndTime, c.UID,
+			c.StartTime, c.EndTime, c.UID,
+			c.UID, c.StartTime, c.EndTime).Scan(count).Error
 	}
 	if err != nil {
 		e.Log.Errorf("db error: %s", err)
 		return err
 	}
 	if c.UID == 0 {
-		err = orm.Raw("SELECT COALESCE(SUM(point), 0) AS point FROM \"train_rewards\" WHERE train_rewards.created_at >= ? "+
-			"AND train_rewards.created_at <= ?", c.StartTime, c.EndTime).Scan(total).Error
+		//err = orm.Raw("SELECT COALESCE(SUM(point), 0) AS point FROM \"train_rewards\" WHERE train_rewards.created_at >= ? "+
+		//	"AND train_rewards.created_at <= ?", c.StartTime, c.EndTime).Scan(total).Error
+		err = orm.Raw(`SELECT COALESCE(SUM(point), 0) FROM (SELECT "user",COALESCE(SUM(sub_query.point), 0) AS point  FROM (
+SELECT "user",  point, created_at FROM train_rewards WHERE point != 0 AND created_at >= ? AND created_at <= ?
+UNION ALL SELECT "user", point_reward as point, created_at FROM ai_task_rewards WHERE point_reward != 0 AND created_at >= ? AND created_at <= ?
+UNION ALL SELECT B."user",A.point, A.created_at FROM tma_rewards as A INNER JOIN (SELECT tma_users."id" as "id",users."id" as "user" FROM tma_users  
+INNER JOIN users ON tma_users.telegram_id=users.telegram_id) as B ON A.tma_id=B."id"  
+WHERE A.point != 0 AND created_at >= ? AND created_at <= ?) as sub_query   GROUP BY "user") AS sub_query`,
+			c.StartTime, c.EndTime,
+			c.StartTime, c.EndTime,
+			c.StartTime, c.EndTime).Scan(total).Error
 	} else {
-		err = orm.Raw("SELECT COALESCE(SUM(point), 0) AS point FROM \"train_rewards\" WHERE train_rewards.user = ? AND train_rewards.created_at >= ? "+
-			"AND train_rewards.created_at <= ?", c.UID, c.StartTime, c.EndTime).Scan(total).Error
+		//err = orm.Raw("SELECT COALESCE(SUM(point), 0) AS point FROM \"train_rewards\" WHERE train_rewards.user = ? AND train_rewards.created_at >= ? "+
+		//	"AND train_rewards.created_at <= ?", c.UID, c.StartTime, c.EndTime).Scan(total).Error
+		err = orm.Raw(`SELECT COALESCE(SUM(point), 0) FROM (SELECT "user",COALESCE(SUM(sub_query.point), 0) AS point  FROM (
+SELECT "user",  point, created_at FROM train_rewards WHERE point != 0 AND created_at >= ? AND created_at <= ? AND "user"=?
+UNION ALL SELECT "user", point_reward as point, created_at FROM ai_task_rewards WHERE point_reward != 0 AND created_at >= ? AND created_at <= ? AND "user"=?
+UNION ALL SELECT B."user",A.point, A.created_at FROM tma_rewards as A INNER JOIN (SELECT tma_users."id" as "id",users."id" as "user" FROM tma_users  
+INNER JOIN users ON tma_users.telegram_id=users.telegram_id AND users."id"=?) as B ON A.tma_id=B."id"  
+WHERE A.point != 0 AND created_at >= ? AND created_at <= ?) as sub_query   GROUP BY "user") AS sub_query`,
+			c.StartTime, c.EndTime, c.UID,
+			c.StartTime, c.EndTime, c.UID,
+			c.UID, c.StartTime, c.EndTime).Scan(total).Error
 	}
 	if err != nil {
 		e.Log.Errorf("db error: %s", err)
@@ -199,24 +266,50 @@ func (e *DataHubUser) GetPageAllPoint(c *dto.DataHubUserGetAllRewardReq, p *acti
 	}
 	tempSize := c.GetPageSize()
 	offset := (c.GetPageIndex() - 1) * tempSize
-	err = orm.Raw(fmt.Sprintf("SELECT \"user\", COALESCE(SUM(point), 0) AS point FROM \"train_rewards\" WHERE point!=0 AND train_rewards.created_at >= to_timestamp(?) "+
-		"AND train_rewards.created_at <= to_timestamp(?) GROUP BY \"user\" ORDER BY %s LIMIT ? OFFSET ?", orderCondition),
-		c.StartTime, c.EndTime, tempSize, offset).Scan(list).Error
-
+	err = orm.Raw(fmt.Sprintf(`
+SELECT "user",COALESCE(SUM(sub_query.point), 0) AS point  FROM (
+SELECT "user",  point, created_at FROM train_rewards WHERE point != 0 AND created_at >= ? AND created_at <= ?
+UNION ALL SELECT "user", point_reward as point, created_at FROM ai_task_rewards WHERE point_reward != 0 AND created_at >= ? AND created_at <= ?
+UNION ALL SELECT B."user",A.point, A.created_at FROM tma_rewards as A INNER JOIN (SELECT tma_users."id" as "id",users."id" as "user" FROM tma_users  
+INNER JOIN users ON tma_users.telegram_id=users.telegram_id) as B ON A.tma_id=B."id"  
+WHERE A.point != 0 AND created_at >= ? AND created_at <= ?) as sub_query   GROUP BY "user" ORDER BY %s LIMIT ? OFFSET ?
+`, orderCondition),
+		c.StartTime, c.EndTime,
+		c.StartTime, c.EndTime,
+		c.StartTime, c.EndTime,
+		tempSize, offset).Scan(list).Error
 	if err != nil {
 		e.Log.Errorf("db error: %s", err)
 		return err
 	}
 
-	err = orm.Raw("SELECT COUNT(*) FROM (SELECT \"user\" FROM \"train_rewards\" WHERE point!=0 AND train_rewards.created_at >= to_timestamp(?) "+
-		"AND train_rewards.created_at <= to_timestamp(?) GROUP BY \"user\" ) AS subquery", c.StartTime, c.EndTime).Scan(count).Error
+	err = orm.Raw(`
+SELECT 
+    COUNT(*) AS total_rows 
+FROM (SELECT "user",COALESCE(SUM(sub_query.point), 0) AS point  FROM (
+SELECT "user",  point, created_at FROM train_rewards WHERE point != 0 AND created_at >= ? AND created_at <= ?
+UNION ALL SELECT "user", point_reward as point, created_at FROM ai_task_rewards WHERE point_reward != 0 AND created_at >= ? AND created_at <= ?
+UNION ALL SELECT B."user",A.point, A.created_at FROM tma_rewards as A INNER JOIN (SELECT tma_users."id" as "id",users."id" as "user" FROM tma_users  
+INNER JOIN users ON tma_users.telegram_id=users.telegram_id) as B ON A.tma_id=B."id"  
+WHERE A.point != 0 AND created_at >= ? AND created_at <= ?) as sub_query   GROUP BY "user") AS grouped_users;
+`,
+		c.StartTime, c.EndTime,
+		c.StartTime, c.EndTime,
+		c.StartTime, c.EndTime).Scan(count).Error
 
 	if err != nil {
 		e.Log.Errorf("db error: %s", err)
 		return err
 	}
-	err = orm.Raw("SELECT COALESCE(ROUND(AVG(point),0), 0) FROM (SELECT \"user\", COALESCE(SUM(point), 0) as point FROM \"train_rewards\" WHERE point!=0 AND train_rewards.created_at >= to_timestamp(?) "+
-		"AND train_rewards.created_at <= to_timestamp(?) GROUP BY \"user\" ) AS subquery", c.StartTime, c.EndTime).Scan(average).Error
+	err = orm.Raw(`SELECT COALESCE(ROUND(AVG(point),0), 0) FROM (SELECT "user",COALESCE(SUM(sub_query.point), 0) AS point  FROM (
+SELECT "user",  point, created_at FROM train_rewards WHERE point != 0 AND created_at >= ? AND created_at <= ?
+UNION ALL SELECT "user", point_reward as point, created_at FROM ai_task_rewards WHERE point_reward != 0 AND created_at >= ? AND created_at <= ?
+UNION ALL SELECT B."user",A.point, A.created_at FROM tma_rewards as A INNER JOIN (SELECT tma_users."id" as "id",users."id" as "user" FROM tma_users  
+INNER JOIN users ON tma_users.telegram_id=users.telegram_id) as B ON A.tma_id=B."id"  
+WHERE A.point != 0 AND created_at >= ? AND created_at <= ?) as sub_query   GROUP BY "user") AS sub_query`,
+		c.StartTime, c.EndTime,
+		c.StartTime, c.EndTime,
+		c.StartTime, c.EndTime).Scan(average).Error
 
 	if err != nil {
 		e.Log.Errorf("db error: %s", err)
@@ -244,10 +337,17 @@ func (e *DataHubUser) GetPageAllPointExport(c *dto.DataHubUserGetAllRewardReq, p
 		}
 	}
 
-	err = orm.Raw(fmt.Sprintf("SELECT \"user\", COALESCE(SUM(point), 0) AS point FROM \"train_rewards\" WHERE point!=0 AND train_rewards.created_at >= to_timestamp(?) "+
-		"AND train_rewards.created_at <= to_timestamp(?) GROUP BY \"user\" ORDER BY %s", orderCondition),
+	err = orm.Raw(fmt.Sprintf(`
+SELECT "user",COALESCE(SUM(sub_query.point), 0) AS point  FROM (
+SELECT "user",  point, created_at FROM train_rewards WHERE point != 0 AND created_at >= ? AND created_at <= ?
+UNION ALL SELECT "user", point_reward as point, created_at FROM ai_task_rewards WHERE point_reward != 0 AND created_at >= ? AND created_at <= ?
+UNION ALL SELECT B."user",A.point, A.created_at FROM tma_rewards as A INNER JOIN (SELECT tma_users."id" as "id",users."id" as "user" FROM tma_users  
+INNER JOIN users ON tma_users.telegram_id=users.telegram_id) as B ON A.tma_id=B."id"  
+WHERE A.point != 0 AND created_at >= ? AND created_at <= ?) as sub_query   GROUP BY "user" ORDER BY %s
+`, orderCondition),
+		c.StartTime, c.EndTime,
+		c.StartTime, c.EndTime,
 		c.StartTime, c.EndTime).Scan(list).Error
-
 	if err != nil {
 		e.Log.Errorf("db error: %s", err)
 		return err

@@ -152,7 +152,22 @@ func (e DataHubUser) GetAllReward(c *gin.Context) {
 	list := make([]models.AllRewardItem, 0)
 	var count int64
 	var average int64
-
+	startTimeStamp, err := strconv.ParseInt(req.StartTime, 10, 64)
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+	endTimeStamp, err := strconv.ParseInt(req.EndTime, 10, 64)
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+	startTime := time.Unix(startTimeStamp, 0)
+	endTime := time.Unix(endTimeStamp, 0)
+	req.StartTime = startTime.Format("2006-01-02 15:04:05")
+	req.EndTime = endTime.Format("2006-01-02 15:04:05")
 	err = s.GetPageAllPoint(&req, p, &list, &count, &average)
 	if err != nil {
 		e.Error(500, err, "查询失败")
@@ -192,7 +207,22 @@ func (e DataHubUser) GetAllRewardExport(c *gin.Context) {
 	p := actions.GetPermissionFromContext(c)
 
 	list := make([]models.AllRewardItem, 0)
-
+	startTimeStamp, err := strconv.ParseInt(req.StartTime, 10, 64)
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+	endTimeStamp, err := strconv.ParseInt(req.EndTime, 10, 64)
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+	startTime := time.Unix(startTimeStamp, 0)
+	endTime := time.Unix(endTimeStamp, 0)
+	req.StartTime = startTime.Format("2006-01-02 15:04:05")
+	req.EndTime = endTime.Format("2006-01-02 15:04:05")
 	err = s.GetPageAllPointExport(&req, p, &list)
 	if err != nil {
 		e.Error(500, err, "查询失败")
