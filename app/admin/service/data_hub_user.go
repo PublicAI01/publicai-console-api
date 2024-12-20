@@ -76,14 +76,14 @@ func (e *DataHubUser) GetPageUser(c *dto.DataHubUserGetPageReq, p *actions.DataP
 	}
 
 	err = orm.Raw(fmt.Sprintf(`
-SELECT id,rank, email, name,     point_total as point, wallet, twitter_name, level, location, telegram_name, telegram_full_name, near_account,evm_account,completed_items,upload_times,contribution_value,created_at
+SELECT id,rank, email, name,     point_total as point, wallet, twitter_name, level, location, telegram_name, ambassador, telegram_full_name, near_account,evm_account,completed_items,upload_times,contribution_value,created_at
 FROM (
     SELECT 
     ROW_NUMBER() OVER (ORDER BY point_total DESC) as rank,
     subquery.*
 FROM (
     SELECT 
-		    u.id, email, name, wallet, twitter_name, level, location, telegram_name, u.telegram_full_name, (SELECT near_address FROM user_near_addresses WHERE "user" = u.id) as near_account,
+		    u.id, email, name, wallet, twitter_name, level, location, telegram_name, ambassador, u.telegram_full_name, (SELECT near_address FROM user_near_addresses WHERE "user" = u.id) as near_account,
 				(SELECT ethereum_address FROM user_ethereum_addresses WHERE "user" = u.id) as evm_account, (SELECT COUNT(*) FROM trains WHERE "user" = u.id) as completed_items,
 				(SELECT COUNT(*) FROM ai_task_upload_records WHERE "user" = u.id) as upload_times,(SELECT COUNT(*) FROM ai_task_uploaded_files WHERE "user" = u.id and v_pass = true and a_pass = true) as contribution_value,
         (u.point + COALESCE(t.tma_point, 0)) as point,u.created_at,

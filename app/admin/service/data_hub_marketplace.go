@@ -408,7 +408,8 @@ SUM(CASE WHEN status = 2 THEN 1 ELSE 0 END) as all_accepted,
 SUM(CASE WHEN status = 1 THEN 1 ELSE 0 END) as partial_accepted,
 SUM(CASE WHEN status = 0 THEN 1 ELSE 0 END) as pending,
 SUM(CASE WHEN status = -1 THEN 1 ELSE 0 END) as subpar,
-SUM(CASE WHEN status = -2 THEN 1 ELSE 0 END) as malicious
+SUM(CASE WHEN status = -2 THEN 1 ELSE 0 END) as malicious,
+SUM(CASE WHEN status != -2 AND can_issue = FALSE THEN 1 ELSE 0 END) as ambassador_pending
 FROM ai_task_upload_records WHERE task=? AND created_at >= ? AND created_at <= ? %s %s;
 `, userCondition, statusCondition), c.TaskID, c.StartTime, c.EndTime).Scan(&model).Error
 	if err != nil {

@@ -174,7 +174,8 @@ type ValidationSummary struct {
 	//MaliciousTotal       int `json:"malicious_total"`
 	Pending int `json:"pending"`
 	//PendingTotal         int `json:"pending_total"`
-	Total int `json:"total"`
+	Total             int `json:"total"`
+	AmbassadorPending int `json:"ambassador_pending"`
 }
 
 func (*ValidationSummary) TableName() string {
