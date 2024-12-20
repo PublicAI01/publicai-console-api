@@ -26,6 +26,7 @@ type DataHubUser struct {
 	TelegramID        *string   `gorm:"type:varchar(40);default:null" json:"-"`
 	TelegramName      *string   `gorm:"type:varchar(40);default:null" json:"telegram_name"`
 	TelegramFullName  *string   `gorm:"type:varchar(40);default:null" json:"-"`
+	Ambassador        bool      `gorm:"default:false" json:"ambassador"`
 	NearAccount       *string   `json:"near_account"`
 	EvmAccount        *string   `json:"evm_account"`
 	Rank              int       `json:"rank"`
