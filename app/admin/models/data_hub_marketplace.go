@@ -9,15 +9,16 @@ type FileItem struct {
 	APass bool   `json:"a_pass"`
 }
 type AITaskShowRecordItem struct {
-	NO         int        `json:"no"`
-	ID         uint       `json:"id"`
-	DataNumber int        `json:"data_number"`
-	User       uint       `json:"user"`
-	Status     int        `json:"status"`
-	Editor     int        `json:"editor"` // -1 nil 0 管理员 1 AI
-	Valid      int        `json:"valid"`
-	UploadTime time.Time  `json:"upload_time"`
-	Items      []FileItem `json:"items" gorm:"-"`
+	NO              int        `json:"no"`
+	ID              uint       `json:"id"`
+	DataNumber      int        `json:"data_number"`
+	User            uint       `json:"user"`
+	Status          int        `json:"status"`
+	Editor          int        `json:"editor"` // -1 nil 0 管理员 1 AI
+	Valid           int        `json:"valid"`
+	UploadTime      time.Time  `json:"upload_time"`
+	Items           []FileItem `json:"items" gorm:"-"`
+	MaliciousReason int        `json:"malicious_reason"` // -1 nil 0 miss target 1 AI generated
 	//Items []AITaskUploadedFile `json:"items" gorm:"-"`
 }
 
