@@ -165,7 +165,7 @@ SELECT
     COALESCE((SELECT malicious_reason
     FROM ai_task_validations WHERE upload_record = u."id"
                 ORDER BY created_at DESC
-    LIMIT 1 )  ,-1) as malicious_reason,
+    LIMIT 1 )  ,0) as malicious_reason,
     (SELECT COUNT(*) 
      FROM ai_task_uploaded_files 
      WHERE upload_record = u."id" AND (v_aye >= %d OR v_nay >=%d)) AS valid,
@@ -336,7 +336,7 @@ SELECT
     COALESCE((SELECT malicious_reason
     FROM ai_task_validations WHERE upload_record = u."id"
                 ORDER BY created_at DESC
-    LIMIT 1 )  ,-1) as malicious_reason,
+    LIMIT 1 )  ,0) as malicious_reason,
     (SELECT COUNT(*) 
      FROM ai_task_uploaded_files 
      WHERE upload_record = u."id" AND (v_aye >= %d OR v_nay >=%d)) AS valid,
@@ -477,7 +477,7 @@ SELECT
     COALESCE((SELECT malicious_reason
     FROM ai_task_validations WHERE upload_record = u."id"
                 ORDER BY created_at DESC
-    LIMIT 1 )  ,-1) as malicious_reason,
+    LIMIT 1 )  ,0) as malicious_reason,
     (SELECT COUNT(*) 
      FROM ai_task_uploaded_files 
      WHERE upload_record = u."id" AND (v_aye >= %d OR v_nay >=%d)) AS valid,

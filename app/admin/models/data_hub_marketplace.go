@@ -18,7 +18,7 @@ type AITaskShowRecordItem struct {
 	Valid           int        `json:"valid"`
 	UploadTime      time.Time  `json:"upload_time"`
 	Items           []FileItem `json:"items" gorm:"-"`
-	MaliciousReason int        `json:"malicious_reason"` // -1 nil 0 miss target 1 AI generated
+	MaliciousReason int        `json:"malicious_reason"` // 0 nil 1 miss target 2 AI generated
 	//Items []AITaskUploadedFile `json:"items" gorm:"-"`
 }
 
