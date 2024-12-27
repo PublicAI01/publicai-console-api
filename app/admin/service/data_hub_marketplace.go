@@ -10,7 +10,9 @@ import (
 	"go-admin/common/actions"
 	cDto "go-admin/common/dto"
 	"go-admin/config"
+	"io"
 	"io/ioutil"
+	"mime/multipart"
 	"net/http"
 	"net/url"
 )
@@ -490,4 +492,160 @@ WHERE u.task= ? %s %s %s ORDER BY %s`, findConsensus, findConsensus, userConditi
 		return err
 	}
 	return nil
+}
+
+func (e *DataHubMarketplace) AddCampaign(c *dto.AddCampaignReq, p *actions.DataPermission) error {
+	hubUrl := fmt.Sprintf("%s/api/admin/marketplace/campaign", config.ExtConfig.DataHubIp)
+	params := url.Values{}
+	params.Set("token", config.ExtConfig.Token)
+	urlWithParams := fmt.Sprintf("%s?%s", hubUrl, params.Encode())
+	postBody, _ := json.Marshal(*c)
+	// 将数据转换为字节序列
+	requestBody := bytes.NewBuffer(postBody)
+	req, err := http.NewRequest("POST", urlWithParams, requestBody)
+	if err != nil {
+		return err
+	}
+	req.Header.Add("Content-Type", "application/json")
+	response, err := http.DefaultClient.Do(req)
+	defer response.Body.Close()
+	type PutResponse struct {
+		Data interface{} `json:"data"`
+		Msg  string      `json:"msg"`
+		Code int         `json:"code"`
+	}
+	var putResp PutResponse
+	if err == nil {
+		body, readErr := ioutil.ReadAll(response.Body)
+		fmt.Println(body)
+		if readErr == nil {
+			err = json.Unmarshal(body, &putResp)
+			if err == nil && putResp.Code == 200 {
+				return nil
+			}
+		} else {
+			err = readErr
+		}
+	}
+
+	return err
+}
+
+func (e *DataHubMarketplace) UpdateCampaign(c *dto.UpdateCampaignReq, p *actions.DataPermission) error {
+	hubUrl := fmt.Sprintf("%s/api/admin/marketplace/campaign", config.ExtConfig.DataHubIp)
+	params := url.Values{}
+	params.Set("token", config.ExtConfig.Token)
+	urlWithParams := fmt.Sprintf("%s?%s", hubUrl, params.Encode())
+	postBody, _ := json.Marshal(*c)
+	// 将数据转换为字节序列
+	requestBody := bytes.NewBuffer(postBody)
+	req, err := http.NewRequest("PUT", urlWithParams, requestBody)
+	if err != nil {
+		return err
+	}
+	req.Header.Add("Content-Type", "application/json")
+	response, err := http.DefaultClient.Do(req)
+	defer response.Body.Close()
+	type PutResponse struct {
+		Data interface{} `json:"data"`
+		Msg  string      `json:"msg"`
+		Code int         `json:"code"`
+	}
+	var putResp PutResponse
+	if err == nil {
+		body, readErr := ioutil.ReadAll(response.Body)
+		fmt.Println(body)
+		if readErr == nil {
+			err = json.Unmarshal(body, &putResp)
+			if err == nil && putResp.Code == 200 {
+				return nil
+			}
+		} else {
+			err = readErr
+		}
+	}
+
+	return err
+}
+
+func (e *DataHubMarketplace) DeleteCampaign(c *dto.DeleteCampaignReq, p *actions.DataPermission) error {
+	hubUrl := fmt.Sprintf("%s/api/admin/marketplace/campaign", config.ExtConfig.DataHubIp)
+	params := url.Values{}
+	params.Set("token", config.ExtConfig.Token)
+	urlWithParams := fmt.Sprintf("%s?%s", hubUrl, params.Encode())
+	postBody, _ := json.Marshal(*c)
+	// 将数据转换为字节序列
+	requestBody := bytes.NewBuffer(postBody)
+	req, err := http.NewRequest("DELETE", urlWithParams, requestBody)
+	if err != nil {
+		return err
+	}
+	req.Header.Add("Content-Type", "application/json")
+	response, err := http.DefaultClient.Do(req)
+	defer response.Body.Close()
+	type PutResponse struct {
+		Data interface{} `json:"data"`
+		Msg  string      `json:"msg"`
+		Code int         `json:"code"`
+	}
+	var putResp PutResponse
+	if err == nil {
+		body, readErr := ioutil.ReadAll(response.Body)
+		fmt.Println(body)
+		if readErr == nil {
+			err = json.Unmarshal(body, &putResp)
+			if err == nil && putResp.Code == 200 {
+				return nil
+			}
+		} else {
+			err = readErr
+		}
+	}
+
+	return err
+}
+
+func (e *DataHubMarketplace) CampaignUpload(c *dto.CampaignUploadReq, p *actions.DataPermission, object *dto.CampaignUploadResponse) error {
+	hubUrl := fmt.Sprintf("%s/api/admin/marketplace/campaign/upload", config.ExtConfig.DataHubIp)
+	params := url.Values{}
+	params.Set("token", config.ExtConfig.Token)
+	urlWithParams := fmt.Sprintf("%s?%s", hubUrl, params.Encode())
+	// 创建一个新的缓冲区
+	buffer := &bytes.Buffer{}
+	writer := multipart.NewWriter(buffer)
+	for _, upload := range c.Files {
+		formFile, _ := writer.CreateFormFile("files", upload.Filename)
+		file, _ := upload.Open()
+		defer file.Close()
+		io.Copy(formFile, file)
+	}
+	writer.Close()
+
+	req, err := http.NewRequest("POST", urlWithParams, buffer)
+	if err != nil {
+		return err
+	}
+	req.Header.Add("Content-Type", writer.FormDataContentType())
+	response, err := http.DefaultClient.Do(req)
+	defer response.Body.Close()
+	type PutResponse struct {
+		Data struct {
+			Links []string `json:"links"`
+		} `json:"data"`
+		Msg  string `json:"msg"`
+		Code int    `json:"code"`
+	}
+	var putResp PutResponse
+	if err == nil {
+		body, readErr := ioutil.ReadAll(response.Body)
+		if readErr == nil {
+			err = json.Unmarshal(body, &putResp)
+			if err == nil && putResp.Code == 200 {
+				object.Links = putResp.Data.Links
+			}
+		} else {
+			err = readErr
+		}
+	}
+	return err
 }

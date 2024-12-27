@@ -1,4 +1,57 @@
 definitions:
+  dto.AddCampaignReq:
+    properties:
+      conditions:
+        description: '["email", "solana"]'
+        type: string
+      cover:
+        type: string
+      description:
+        type: string
+      end:
+        type: integer
+      level:
+        description: 0 Easy 1 Medium 2 Difficult 3 Extremely Hard
+        type: integer
+      max_number:
+        description: max number of files
+        type: integer
+      max_size:
+        description: max size of file, byte,0 unlimited
+        type: integer
+      min_number:
+        description: min number of files
+        type: integer
+      name:
+        type: string
+      point_reward:
+        type: string
+      point_stake:
+        type: string
+      requirements:
+        type: string
+      simple_description:
+        type: string
+      start:
+        type: integer
+      tags:
+        description: '["Data collection"]'
+        type: string
+      type:
+        description: 0 Image 1 Text 2 Video 3 Audio
+        type: integer
+      usdt_reward:
+        type: string
+      verify_requirements:
+        type: string
+    type: object
+  dto.CampaignUploadReq:
+    type: object
+  dto.DeleteCampaignReq:
+    properties:
+      task_id:
+        type: integer
+    type: object
   dto.GetSetSysConfigReq:
     properties:
       configKey:
@@ -699,6 +752,54 @@ definitions:
       username:
         type: string
     type: object
+  dto.UpdateCampaignReq:
+    properties:
+      conditions:
+        description: '["email", "solana"]'
+        type: string
+      cover:
+        type: string
+      description:
+        type: string
+      end:
+        type: integer
+      level:
+        description: 0 Easy 1 Medium 2 Difficult 3 Extremely Hard
+        type: integer
+      max_number:
+        description: max number of files
+        type: integer
+      max_size:
+        description: max size of file, byte,0 unlimited
+        type: integer
+      min_number:
+        description: min number of files
+        type: integer
+      name:
+        type: string
+      point_reward:
+        type: string
+      point_stake:
+        type: string
+      requirements:
+        type: string
+      simple_description:
+        type: string
+      start:
+        type: integer
+      tags:
+        description: '["Data collection"]'
+        type: string
+      task_id:
+        type: integer
+      type:
+        description: 0 Image 1 Text 2 Video 3 Audio
+        type: integer
+      usdt_reward:
+        type: string
+      verify_requirements:
+        type: string
+    type: object
   dto.UpdateStatusReq:
     properties:
       createBy:
@@ -1141,6 +1242,27 @@ paths:
       tags:
       - 登陆
   /api/v1/data_hub/marketplace/campaign:
+    delete:
+      consumes:
+      - application/json
+      description: 获取JSON
+      parameters:
+      - description: body
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/dto.DeleteCampaignReq'
+      responses:
+        "200":
+          description: '{"code": 200, "message": "修改成功"}'
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - Bearer: []
+      summary: 删除campaign
+      tags:
+      - DataHub
     get:
       description: 获取JSON
       responses:
@@ -1151,6 +1273,48 @@ paths:
       security:
       - Bearer: []
       summary: 列表DataHub所有Campaign信息数据
+      tags:
+      - DataHub
+    post:
+      consumes:
+      - application/json
+      description: 获取JSON
+      parameters:
+      - description: body
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/dto.AddCampaignReq'
+      responses:
+        "200":
+          description: '{"code": 200, "message": "修改成功"}'
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - Bearer: []
+      summary: 新增campaign
+      tags:
+      - DataHub
+    put:
+      consumes:
+      - application/json
+      description: 获取JSON
+      parameters:
+      - description: body
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateCampaignReq'
+      responses:
+        "200":
+          description: '{"code": 200, "message": "修改成功"}'
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - Bearer: []
+      summary: 更新campaign
       tags:
       - DataHub
   /api/v1/data_hub/marketplace/campaign/reward:
@@ -1169,6 +1333,28 @@ paths:
       security:
       - Bearer: []
       summary: 获取Campaign reward信息数据
+      tags:
+      - DataHub
+  /api/v1/data_hub/marketplace/campaign/upload:
+    post:
+      consumes:
+      - multipart/form-data
+      description: 获取JSON
+      parameters:
+      - description: body
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CampaignUploadReq'
+      responses:
+        "200":
+          description: '{"code": 200, "data": [...]}'
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - Bearer: []
+      summary: 上传图片
       tags:
       - DataHub
   /api/v1/data_hub/marketplace/campaign/validation:
