@@ -106,6 +106,108 @@ const docTemplateadmin = `{
                         }
                     }
                 }
+            },
+            "put": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "获取JSON",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "DataHub"
+                ],
+                "summary": "更新campaign",
+                "parameters": [
+                    {
+                        "description": "body",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.UpdateCampaignReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{\"code\": 200, \"message\": \"修改成功\"}",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "获取JSON",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "DataHub"
+                ],
+                "summary": "新增campaign",
+                "parameters": [
+                    {
+                        "description": "body",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.AddCampaignReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{\"code\": 200, \"message\": \"修改成功\"}",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "获取JSON",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "DataHub"
+                ],
+                "summary": "删除campaign",
+                "parameters": [
+                    {
+                        "description": "body",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.DeleteCampaignReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{\"code\": 200, \"message\": \"修改成功\"}",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
             }
         },
         "/api/v1/data_hub/marketplace/campaign/reward": {
@@ -126,6 +228,42 @@ const docTemplateadmin = `{
                         "description": "task_id",
                         "name": "task_id",
                         "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{\"code\": 200, \"data\": [...]}",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/data_hub/marketplace/campaign/upload": {
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "获取JSON",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "tags": [
+                    "DataHub"
+                ],
+                "summary": "上传图片",
+                "parameters": [
+                    {
+                        "description": "body",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.CampaignUploadReq"
+                        }
                     }
                 ],
                 "responses": {
@@ -3383,6 +3521,83 @@ const docTemplateadmin = `{
         }
     },
     "definitions": {
+        "dto.AddCampaignReq": {
+            "type": "object",
+            "properties": {
+                "conditions": {
+                    "description": "[\"email\", \"solana\"]",
+                    "type": "string"
+                },
+                "cover": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "end": {
+                    "type": "integer"
+                },
+                "level": {
+                    "description": "0 Easy 1 Medium 2 Difficult 3 Extremely Hard",
+                    "type": "integer"
+                },
+                "max_number": {
+                    "description": "max number of files",
+                    "type": "integer"
+                },
+                "max_size": {
+                    "description": "max size of file, byte,0 unlimited",
+                    "type": "integer"
+                },
+                "min_number": {
+                    "description": "min number of files",
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "point_reward": {
+                    "type": "string"
+                },
+                "point_stake": {
+                    "type": "string"
+                },
+                "requirements": {
+                    "type": "string"
+                },
+                "simple_description": {
+                    "type": "string"
+                },
+                "start": {
+                    "type": "integer"
+                },
+                "tags": {
+                    "description": "[\"Data collection\"]",
+                    "type": "string"
+                },
+                "type": {
+                    "description": "0 Image 1 Text 2 Video 3 Audio",
+                    "type": "integer"
+                },
+                "usdt_reward": {
+                    "type": "string"
+                },
+                "verify_requirements": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.CampaignUploadReq": {
+            "type": "object"
+        },
+        "dto.DeleteCampaignReq": {
+            "type": "object",
+            "properties": {
+                "task_id": {
+                    "type": "integer"
+                }
+            }
+        },
         "dto.GetSetSysConfigReq": {
             "type": "object",
             "properties": {
@@ -4412,6 +4627,75 @@ const docTemplateadmin = `{
                     "type": "integer"
                 },
                 "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.UpdateCampaignReq": {
+            "type": "object",
+            "properties": {
+                "conditions": {
+                    "description": "[\"email\", \"solana\"]",
+                    "type": "string"
+                },
+                "cover": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "end": {
+                    "type": "integer"
+                },
+                "level": {
+                    "description": "0 Easy 1 Medium 2 Difficult 3 Extremely Hard",
+                    "type": "integer"
+                },
+                "max_number": {
+                    "description": "max number of files",
+                    "type": "integer"
+                },
+                "max_size": {
+                    "description": "max size of file, byte,0 unlimited",
+                    "type": "integer"
+                },
+                "min_number": {
+                    "description": "min number of files",
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "point_reward": {
+                    "type": "string"
+                },
+                "point_stake": {
+                    "type": "string"
+                },
+                "requirements": {
+                    "type": "string"
+                },
+                "simple_description": {
+                    "type": "string"
+                },
+                "start": {
+                    "type": "integer"
+                },
+                "tags": {
+                    "description": "[\"Data collection\"]",
+                    "type": "string"
+                },
+                "task_id": {
+                    "type": "integer"
+                },
+                "type": {
+                    "description": "0 Image 1 Text 2 Video 3 Audio",
+                    "type": "integer"
+                },
+                "usdt_reward": {
+                    "type": "string"
+                },
+                "verify_requirements": {
                     "type": "string"
                 }
             }

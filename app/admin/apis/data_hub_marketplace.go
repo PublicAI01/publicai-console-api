@@ -453,3 +453,133 @@ func (e DataHubMarketplace) GetCampaignValidationDownload(c *gin.Context) {
 	}
 	e.OK(list, "查询成功")
 }
+
+// AddCampaign 新增campaign
+// @Summary 新增campaign
+// @Description 获取JSON
+// @Tags DataHub
+// @Accept  application/json
+// @Product application/json
+// @Param data body dto.AddCampaignReq true "body"
+// @Success 200 {object} response.Response	"{"code": 200, "message": "修改成功"}"
+// @Router /api/v1/data_hub/marketplace/campaign [post]
+// @Security Bearer
+func (e DataHubMarketplace) AddCampaign(c *gin.Context) {
+	s := service.DataHubMarketplace{}
+	req := dto.AddCampaignReq{}
+	err := e.MakeContext(c).
+		MakeOrm().
+		Bind(&req, binding.JSON, nil).
+		MakeService(&s.Service).
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		return
+	}
+	p := actions.GetPermissionFromContext(c)
+	err = s.AddCampaign(&req, p)
+	if err != nil {
+		e.Error(500, err, "Add campaign failed")
+		return
+	}
+	e.OK(0, "Add campaign success")
+}
+
+// UpdateCampaign 更新campaign
+// @Summary 更新campaign
+// @Description 获取JSON
+// @Tags DataHub
+// @Accept  application/json
+// @Product application/json
+// @Param data body dto.UpdateCampaignReq true "body"
+// @Success 200 {object} response.Response	"{"code": 200, "message": "修改成功"}"
+// @Router /api/v1/data_hub/marketplace/campaign [put]
+// @Security Bearer
+func (e DataHubMarketplace) UpdateCampaign(c *gin.Context) {
+	s := service.DataHubMarketplace{}
+	req := dto.UpdateCampaignReq{}
+	err := e.MakeContext(c).
+		MakeOrm().
+		Bind(&req, binding.JSON, nil).
+		MakeService(&s.Service).
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		return
+	}
+	p := actions.GetPermissionFromContext(c)
+	err = s.UpdateCampaign(&req, p)
+	if err != nil {
+		e.Error(500, err, "Update campaign failed")
+		return
+	}
+	e.OK(0, "Update campaign success")
+}
+
+// DeleteCampaign 删除campaign
+// @Summary 删除campaign
+// @Description 获取JSON
+// @Tags DataHub
+// @Accept  application/json
+// @Product application/json
+// @Param data body dto.DeleteCampaignReq true "body"
+// @Success 200 {object} response.Response	"{"code": 200, "message": "修改成功"}"
+// @Router /api/v1/data_hub/marketplace/campaign [delete]
+// @Security Bearer
+func (e DataHubMarketplace) DeleteCampaign(c *gin.Context) {
+	s := service.DataHubMarketplace{}
+	req := dto.DeleteCampaignReq{}
+	err := e.MakeContext(c).
+		MakeOrm().
+		Bind(&req, binding.JSON, nil).
+		MakeService(&s.Service).
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		return
+	}
+	p := actions.GetPermissionFromContext(c)
+	err = s.DeleteCampaign(&req, p)
+	if err != nil {
+		e.Error(500, err, "Delete campaign failed")
+		return
+	}
+	e.OK(0, "Delete campaign success")
+}
+
+// CampaignUpload 上传图片
+// @Summary 上传图片
+// @Description 获取JSON
+// @Tags DataHub
+// @Param data body dto.CampaignUploadReq true "body"
+// @Success 200 {object} response.Response "{"code": 200, "data": [...]}"
+// @Router /api/v1/data_hub/marketplace/campaign/upload [post]
+// @Security Bearer
+func (e DataHubMarketplace) CampaignUpload(c *gin.Context) {
+	s := service.DataHubMarketplace{}
+	req := dto.CampaignUploadReq{}
+	err := e.MakeContext(c).
+		MakeOrm().
+		Bind(&req).
+		MakeService(&s.Service).
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+	if err = c.ShouldBind(&req); err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+	//数据权限检查
+	p := actions.GetPermissionFromContext(c)
+	var object dto.CampaignUploadResponse
+	err = s.CampaignUpload(&req, p, &object)
+	if err != nil {
+		e.Error(500, err, "Upload failed")
+		return
+	}
+	e.OK(object, "Upload success")
+}

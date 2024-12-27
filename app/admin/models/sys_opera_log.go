@@ -78,11 +78,15 @@ func SaveOperaLog(message storage.Messager) (err error) {
 	if len(l.JsonResult) > 100 {
 		l.JsonResult = l.JsonResult[:100]
 	}
-	err = db.Create(&l).Error
-	if err != nil {
-		log.Errorf("db create error, %s", err.Error())
-		// Log writing to the database ignores error
-		return nil
+	// TODO:
+	if l.OperUrl != "/api/v1/data_hub/marketplace/campaign/upload" {
+		err = db.Create(&l).Error
+		if err != nil {
+			log.Errorf("db create error, %s", err.Error())
+			// Log writing to the database ignores error
+			return nil
+		}
 	}
+
 	return nil
 }
