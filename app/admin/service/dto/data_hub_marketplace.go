@@ -145,3 +145,29 @@ type CampaignUploadReq struct {
 type CampaignUploadResponse struct {
 	Links []string `json:"links"`
 }
+
+type CampaignDetailReq struct {
+	Id int `uri:"id"`
+}
+
+type CampaignDetailResponse struct {
+	TaskID             int    `json:"task_id"`
+	Name               string `json:"name"`
+	Cover              string `json:"cover"`
+	Level              int    `json:"level"` // 0 Easy 1 Medium 2 Difficult 3 Extremely Hard
+	Start              int    `json:"start"`
+	End                int    `json:"end"`
+	Type               int    `json:"type"` // 0 Image 1 Text 2 Video 3 Audio
+	Tags               string `json:"tags"` // ["Data collection"]
+	Description        string `json:"description"`
+	SimpleDescription  string `json:"simple_description"`
+	Requirements       string `json:"requirements"`
+	USDTReward         string `json:"usdt_reward"`
+	PointReward        string `json:"point_reward"`
+	MaxSize            int    `json:"max_size"`   // max size of file, byte,0 unlimited
+	MaxNumber          int    `json:"max_number"` // max number of files
+	MinNumber          int    `json:"min_number"` // min number of files
+	Conditions         string `json:"conditions"` // ["email", "solana"]
+	PointStake         string `json:"point_stake"`
+	VerifyRequirements string `json:"verify_requirements"`
+}

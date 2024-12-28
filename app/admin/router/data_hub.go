@@ -26,6 +26,7 @@ func registerDataHubUserRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMi
 		r.PUT("/marketplace/campaign/validation", apiMkt.UpdateCampaignValidation)
 		r.POST("/marketplace/campaign", apiMkt.AddCampaign)
 		r.PUT("/marketplace/campaign", apiMkt.UpdateCampaign)
+		r.GET("/marketplace/campaign/:id", apiMkt.GetCampaignDetail)
 		r.DELETE("/marketplace/campaign", apiMkt.DeleteCampaign)
 		r.POST("/marketplace/campaign/upload", apiMkt.CampaignUpload)
 		r.GET("/user/reward", api.GetAllReward)

@@ -583,3 +583,34 @@ func (e DataHubMarketplace) CampaignUpload(c *gin.Context) {
 	}
 	e.OK(object, "Upload success")
 }
+
+// GetCampaignDetail 获取某个campaign信息
+// @Summary 获取某个campaign信息
+// @Description 获取某个campaign信息
+// @Tags DataHub
+// @Param id path string false "id"
+// @Success 200 {object} response.Response{data=dto.CampaignDetailResponse} "{"code": 200, "data": [...]}"
+// @Router /api/v1/data_hub/marketplace/campaign/{id} [get]
+// @Security Bearer
+func (e DataHubMarketplace) GetCampaignDetail(c *gin.Context) {
+	req := dto.CampaignDetailReq{}
+	s := service.DataHubMarketplace{}
+	err := e.MakeContext(c).
+		MakeOrm().
+		Bind(&req, nil).
+		MakeService(&s.Service).
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+	p := actions.GetPermissionFromContext(c)
+	var object dto.CampaignDetailResponse
+	err = s.CampaignDetail(&req, p, &object)
+	if err != nil {
+		e.Error(500, err, "查询失败")
+		return
+	}
+	e.OK(object, "查询成功")
+}

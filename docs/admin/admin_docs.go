@@ -248,9 +248,6 @@ const docTemplateadmin = `{
                     }
                 ],
                 "description": "获取JSON",
-                "consumes": [
-                    "multipart/form-data"
-                ],
                 "tags": [
                     "DataHub"
                 ],
@@ -573,6 +570,48 @@ const docTemplateadmin = `{
                         "description": "{\"code\": 200, \"data\": [...]}",
                         "schema": {
                             "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/data_hub/marketplace/campaign/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "获取某个campaign信息",
+                "tags": [
+                    "DataHub"
+                ],
+                "summary": "获取某个campaign信息",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "id",
+                        "name": "id",
+                        "in": "path"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{\"code\": 200, \"data\": [...]}",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dto.CampaignDetailResponse"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     }
                 }
@@ -3574,6 +3613,75 @@ const docTemplateadmin = `{
                 "tags": {
                     "description": "[\"Data collection\"]",
                     "type": "string"
+                },
+                "type": {
+                    "description": "0 Image 1 Text 2 Video 3 Audio",
+                    "type": "integer"
+                },
+                "usdt_reward": {
+                    "type": "string"
+                },
+                "verify_requirements": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.CampaignDetailResponse": {
+            "type": "object",
+            "properties": {
+                "conditions": {
+                    "description": "[\"email\", \"solana\"]",
+                    "type": "string"
+                },
+                "cover": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "end": {
+                    "type": "integer"
+                },
+                "level": {
+                    "description": "0 Easy 1 Medium 2 Difficult 3 Extremely Hard",
+                    "type": "integer"
+                },
+                "max_number": {
+                    "description": "max number of files",
+                    "type": "integer"
+                },
+                "max_size": {
+                    "description": "max size of file, byte,0 unlimited",
+                    "type": "integer"
+                },
+                "min_number": {
+                    "description": "min number of files",
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "point_reward": {
+                    "type": "string"
+                },
+                "point_stake": {
+                    "type": "string"
+                },
+                "requirements": {
+                    "type": "string"
+                },
+                "simple_description": {
+                    "type": "string"
+                },
+                "start": {
+                    "type": "integer"
+                },
+                "tags": {
+                    "description": "[\"Data collection\"]",
+                    "type": "string"
+                },
+                "task_id": {
+                    "type": "integer"
                 },
                 "type": {
                     "description": "0 Image 1 Text 2 Video 3 Audio",

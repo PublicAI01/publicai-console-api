@@ -649,3 +649,36 @@ func (e *DataHubMarketplace) CampaignUpload(c *dto.CampaignUploadReq, p *actions
 	}
 	return err
 }
+
+func (e *DataHubMarketplace) CampaignDetail(c *dto.CampaignDetailReq, p *actions.DataPermission, object *dto.CampaignDetailResponse) error {
+	hubUrl := fmt.Sprintf("%s/api/admin/marketplace/campaign/%d", config.ExtConfig.DataHubIp, c.Id)
+	params := url.Values{}
+	params.Set("token", config.ExtConfig.Token)
+	urlWithParams := fmt.Sprintf("%s?%s", hubUrl, params.Encode())
+
+	req, err := http.NewRequest("GET", urlWithParams, nil)
+	if err != nil {
+		return err
+	}
+	req.Header.Add("Content-Type", "application/json")
+	response, err := http.DefaultClient.Do(req)
+	defer response.Body.Close()
+	type PutResponse struct {
+		Data dto.CampaignDetailResponse `json:"data"`
+		Msg  string                     `json:"msg"`
+		Code int                        `json:"code"`
+	}
+	var putResp PutResponse
+	if err == nil {
+		body, readErr := ioutil.ReadAll(response.Body)
+		if readErr == nil {
+			err = json.Unmarshal(body, &putResp)
+			if err == nil && putResp.Code == 200 {
+				*object = putResp.Data
+			}
+		} else {
+			err = readErr
+		}
+	}
+	return err
+}
