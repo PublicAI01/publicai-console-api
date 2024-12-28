@@ -94,12 +94,12 @@ LEFT JOIN (
         status > 1
     GROUP BY 
         "task"
-) AS accepted_records ON accepted_records."task" = t."id" ORDER BY t."created_at" DESC LIMIT ? OFFSET ?`), tempSize, offset).Scan(&list).Error
+) AS accepted_records ON accepted_records."task" = t."id" WHERE available = TRUE ORDER BY t."created_at" DESC LIMIT ? OFFSET ?`), tempSize, offset).Scan(&list).Error
 	if err != nil {
 		e.Log.Errorf("db error: %s", err)
 		return err
 	}
-	err = orm.Raw("SELECT COUNT(*) FROM ai_tasks").Scan(count).Error
+	err = orm.Raw("SELECT COUNT(*) FROM ai_tasks WHERE available = TRUE").Scan(count).Error
 	if err != nil {
 		e.Log.Errorf("db error: %s", err)
 		return err
