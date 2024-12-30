@@ -246,6 +246,106 @@ WHERE A.point != 0 AND created_at >= ? AND created_at <= ?) as sub_query   GROUP
 	return nil
 }
 
+func (e *DataHubUser) GetPageUserPointExport(c *dto.DataHubUserPointGetPageReq, p *actions.DataPermission, list *[]models.RewardItem, count *int64, total *int64) error {
+	var err error
+	var data models.Train
+	orm := e.Orm.Debug().
+		Scopes(
+			cDto.MakeCondition(c.GetNeedSearch()),
+			cDto.Paginate(c.GetPageSize(), c.GetPageIndex()),
+			actions.Permission(data.TableName(), p),
+		)
+	orderCondition := "created_at ASC"
+	if c.UID == 0 {
+		err = orm.Raw(fmt.Sprintf(`
+SELECT "user",  point, created_at FROM train_rewards WHERE point != 0 AND created_at >= ? AND created_at <= ?
+UNION ALL SELECT "user", point_reward as point, created_at FROM ai_task_rewards WHERE point_reward != 0 AND created_at >= ? AND created_at <= ?
+UNION ALL SELECT B."user",A.point, A.created_at FROM tma_rewards as A INNER JOIN (SELECT tma_users."id" as "id",users."id" as "user" FROM tma_users  
+INNER JOIN users ON tma_users.telegram_id=users.telegram_id) as B ON A.tma_id=B."id"  
+WHERE A.point != 0 AND created_at >= ? AND created_at <= ? ORDER BY %s
+`, orderCondition),
+			c.StartTime, c.EndTime,
+			c.StartTime, c.EndTime,
+			c.StartTime, c.EndTime,
+		).Scan(list).Error
+	} else {
+		err = orm.Raw(fmt.Sprintf(`
+SELECT "user",  point, created_at FROM train_rewards WHERE point != 0 AND created_at >= ? AND created_at <= ? AND "user"=?
+UNION ALL SELECT "user", point_reward as point, created_at FROM ai_task_rewards WHERE point_reward != 0 AND created_at >= ? AND created_at <= ?  AND "user"=?
+UNION ALL SELECT B."user",A.point, A.created_at FROM tma_rewards as A INNER JOIN (SELECT tma_users."id" as "id",users."id" as "user" FROM tma_users  
+INNER JOIN users ON tma_users.telegram_id=users.telegram_id AND users."id"=?) as B ON A.tma_id=B."id"  
+WHERE A.point != 0 AND created_at >= ? AND created_at <= ? ORDER BY %s
+`, orderCondition),
+			c.StartTime, c.EndTime, c.UID,
+			c.StartTime, c.EndTime, c.UID,
+			c.UID, c.StartTime, c.EndTime,
+		).Scan(list).Error
+	}
+	if err != nil {
+		e.Log.Errorf("db error: %s", err)
+		return err
+	}
+	if c.UID == 0 {
+		err = orm.Raw(`
+SELECT 
+    COUNT(*) AS total_rows 
+FROM (
+SELECT "user",  point, created_at FROM train_rewards WHERE point != 0 AND created_at >= ? AND created_at <= ?
+UNION ALL SELECT "user", point_reward as point, created_at FROM ai_task_rewards WHERE point_reward != 0 AND created_at >= ? AND created_at <= ?
+UNION ALL SELECT B."user",A.point, A.created_at FROM tma_rewards as A INNER JOIN (SELECT tma_users."id" as "id",users."id" as "user" FROM tma_users  
+INNER JOIN users ON tma_users.telegram_id=users.telegram_id) as B ON A.tma_id=B."id"  
+WHERE A.point != 0 AND created_at >= ? AND created_at <= ?) AS grouped_users;
+`,
+			c.StartTime, c.EndTime,
+			c.StartTime, c.EndTime,
+			c.StartTime, c.EndTime).Scan(count).Error
+	} else {
+		err = orm.Raw(`
+SELECT 
+    COUNT(*) AS total_rows 
+FROM (
+SELECT "user",  point, created_at FROM train_rewards WHERE point != 0 AND created_at >= ? AND created_at <= ? AND "user"=?
+UNION ALL SELECT "user", point_reward as point, created_at FROM ai_task_rewards WHERE point_reward != 0 AND created_at >= ? AND created_at <= ? AND "user"=?
+UNION ALL SELECT B."user",A.point, A.created_at FROM tma_rewards as A INNER JOIN (SELECT tma_users."id" as "id",users."id" as "user" FROM tma_users  
+INNER JOIN users ON tma_users.telegram_id=users.telegram_id AND users."id"=?) as B ON A.tma_id=B."id"  
+WHERE A.point != 0 AND created_at >= ? AND created_at <= ?) AS grouped_users;
+`,
+			c.StartTime, c.EndTime, c.UID,
+			c.StartTime, c.EndTime, c.UID,
+			c.UID, c.StartTime, c.EndTime).Scan(count).Error
+	}
+	if err != nil {
+		e.Log.Errorf("db error: %s", err)
+		return err
+	}
+	if c.UID == 0 {
+		err = orm.Raw(`SELECT COALESCE(SUM(point), 0) FROM (SELECT "user",COALESCE(SUM(sub_query.point), 0) AS point  FROM (
+SELECT "user",  point, created_at FROM train_rewards WHERE point != 0 AND created_at >= ? AND created_at <= ?
+UNION ALL SELECT "user", point_reward as point, created_at FROM ai_task_rewards WHERE point_reward != 0 AND created_at >= ? AND created_at <= ?
+UNION ALL SELECT B."user",A.point, A.created_at FROM tma_rewards as A INNER JOIN (SELECT tma_users."id" as "id",users."id" as "user" FROM tma_users  
+INNER JOIN users ON tma_users.telegram_id=users.telegram_id) as B ON A.tma_id=B."id"  
+WHERE A.point != 0 AND created_at >= ? AND created_at <= ?) as sub_query   GROUP BY "user") AS sub_query`,
+			c.StartTime, c.EndTime,
+			c.StartTime, c.EndTime,
+			c.StartTime, c.EndTime).Scan(total).Error
+	} else {
+		err = orm.Raw(`SELECT COALESCE(SUM(point), 0) FROM (SELECT "user",COALESCE(SUM(sub_query.point), 0) AS point  FROM (
+SELECT "user",  point, created_at FROM train_rewards WHERE point != 0 AND created_at >= ? AND created_at <= ? AND "user"=?
+UNION ALL SELECT "user", point_reward as point, created_at FROM ai_task_rewards WHERE point_reward != 0 AND created_at >= ? AND created_at <= ? AND "user"=?
+UNION ALL SELECT B."user",A.point, A.created_at FROM tma_rewards as A INNER JOIN (SELECT tma_users."id" as "id",users."id" as "user" FROM tma_users  
+INNER JOIN users ON tma_users.telegram_id=users.telegram_id AND users."id"=?) as B ON A.tma_id=B."id"  
+WHERE A.point != 0 AND created_at >= ? AND created_at <= ?) as sub_query   GROUP BY "user") AS sub_query`,
+			c.StartTime, c.EndTime, c.UID,
+			c.StartTime, c.EndTime, c.UID,
+			c.UID, c.StartTime, c.EndTime).Scan(total).Error
+	}
+	if err != nil {
+		e.Log.Errorf("db error: %s", err)
+		return err
+	}
+	return nil
+}
+
 func (e *DataHubUser) GetPageAllPoint(c *dto.DataHubUserGetAllRewardReq, p *actions.DataPermission, list *[]models.AllRewardItem, count *int64, average *int64) error {
 	var err error
 	var data models.Train

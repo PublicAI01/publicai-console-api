@@ -123,6 +123,98 @@ func (e DataHubUser) GetPageUserPoint(c *gin.Context) {
 	}, int(count), req.GetPageIndex(), req.GetPageSize(), "查询成功")
 }
 
+// GetUserPointExport
+// @Summary 导出DataHub用户积分信息数据
+// @Description 获取JSON
+// @Tags DataHub
+// @Param uid query string false "uid"
+// @Param start_time query string false "start_time"
+// @Param end_time query string false "end_time"
+// @Success 200 {string} {object} response.Response "{"code": 200, "data": [...]}"
+// @Router /api/v1/data_hub/user/point/export [get]
+// @Security Bearer
+func (e DataHubUser) GetUserPointExport(c *gin.Context) {
+	s := service.DataHubUser{}
+	req := dto.DataHubUserPointGetPageReq{}
+	err := e.MakeContext(c).
+		MakeOrm().
+		Bind(&req).
+		MakeService(&s.Service).
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+
+	//数据权限检查
+	p := actions.GetPermissionFromContext(c)
+
+	list := make([]models.RewardItem, 0)
+	var count int64
+	var total int64
+
+	startTimeStamp, err := strconv.ParseInt(req.StartTime, 10, 64)
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+	endTimeStamp, err := strconv.ParseInt(req.EndTime, 10, 64)
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+	startTime := time.Unix(startTimeStamp, 0)
+	endTime := time.Unix(endTimeStamp, 0)
+	req.StartTime = startTime.Format("2006-01-02 15:04:05")
+	req.EndTime = endTime.Format("2006-01-02 15:04:05")
+	err = s.GetPageUserPointExport(&req, p, &list, &count, &total)
+	if err != nil {
+		e.Error(500, err, "查询失败")
+		return
+	}
+	//e.PageOK(map[string]interface{}{
+	//	"total": total,
+	//	"data":  list,
+	//}, int(count), req.GetPageIndex(), req.GetPageSize(), "查询成功")
+	f := excelize.NewFile()
+	defer func() {
+		if err := f.Close(); err != nil {
+			fmt.Println(err)
+		}
+	}()
+	// Create a new sheet.
+	index, err := f.NewSheet("points")
+	if err != nil {
+		e.Error(500, err, "导出失败")
+		return
+	}
+	// Set value of a cell.
+	f.SetCellValue("points", "A1", "User ID")
+	f.SetCellValue("points", "B1", "Points")
+	f.SetCellValue("points", "C1", "CreatedAt")
+	for i, item := range list {
+		f.SetCellValue("points", fmt.Sprintf("A%d", i+2), item.User)
+		f.SetCellValue("points", fmt.Sprintf("B%d", i+2), item.Point)
+		f.SetCellValue("points", fmt.Sprintf("C%d", i+2), item.CreatedAt)
+	}
+	f.SetCellValue("points", fmt.Sprintf("A%d", len(list)+2), "Total points")
+	f.SetCellValue("points", fmt.Sprintf("B%d", len(list)+2), total)
+	// Set active sheet of the workbook.
+	f.SetActiveSheet(index)
+	f.DeleteSheet("Sheet1")
+	c.Header("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+	filename := fmt.Sprintf("points_%d.xlsx", req.UID)
+	c.Header("Content-Disposition", "attachment; filename="+filename)
+	if err := f.Write(c.Writer); err != nil {
+		e.Error(500, err, "导出失败")
+		return
+	}
+	//e.OK(0, "export success")
+}
+
 // GetAllReward Get
 // @Summary 获取user reward信息数据
 // @Description 获取JSON
